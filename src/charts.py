@@ -268,7 +268,10 @@ class ChartBuilder:
             hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]} / %{customdata[2]}<extra></extra>",
         )
         fig.add_vline(x=50, line_dash="dot", line_width=1, line_color=pal.BASELINE)
-        fig.update_xaxes(range=[0, 100], ticksuffix="%")
+        # Pas de valeurs sur l'axe X : déjà écrites sur chaque barre, les
+        # ticks 0/50/100% seraient un troisième rappel du même chiffre.
+        # L'axe Y (provinces) reste seul repère nécessaire à la lecture.
+        fig.update_xaxes(range=[0, 100], showticklabels=False)
         fig = self._round_bars(fig, bargap=0.25)
         # Pas de colorbar ici : contrairement à "Volume de besoins par
         # province" (où la couleur est la SEULE vue du taux), le taux est
