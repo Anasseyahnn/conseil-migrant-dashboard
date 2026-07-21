@@ -21,17 +21,17 @@ class ChartBuilder:
         if subtitle:
             full_title += f"<br><span style='font-size:12px;color:{pal.INK_MUTED}'>{subtitle}</span>"
         fig.update_layout(
-            title=dict(text=full_title, x=0, xanchor="left"),
+            title=dict(text=full_title, x=0, xanchor="left", y=0.97, yanchor="top", pad=dict(b=8)),
             paper_bgcolor=pal.SURFACE,
             plot_bgcolor=pal.SURFACE,
             font=dict(family=pal.FONT_FAMILY, color=pal.INK_SECONDARY, size=12),
             legend=dict(
-                orientation="h", y=1.14, x=0, xanchor="left",
+                orientation="h", y=1.24, yanchor="bottom", x=1, xanchor="right",
                 font=dict(size=11, color=pal.INK_SECONDARY),
                 title=None,
             ) if show_legend is not False else dict(visible=False),
             showlegend=show_legend if show_legend is not None else True,
-            margin=dict(t=64, b=36, l=8, r=8),
+            margin=dict(t=84, b=36, l=8, r=8),
             hoverlabel=dict(
                 bgcolor=pal.SURFACE, bordercolor=pal.BASELINE,
                 font=dict(family=pal.FONT_FAMILY, color=pal.INK_PRIMARY, size=12),
