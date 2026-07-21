@@ -153,9 +153,13 @@ class ChartBuilder:
             d, x="besoin", y="taux", color="genre", barmode="group",
             color_discrete_map=color_map,
             labels={"besoin": "", "taux": "Taux de satisfaction (%)"},
-            custom_data=["besoin", "genre", "n"],
+            text="taux", custom_data=["besoin", "genre", "n"],
         )
-        fig.update_traces(hovertemplate="<b>%{customdata[0]}</b> — %{customdata[1]}<br>%{y}% (n=%{customdata[2]})<extra></extra>")
+        fig.update_traces(
+            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
+            textfont=dict(color="#ffffff", size=11, family=pal.FONT_FAMILY),
+            hovertemplate="<b>%{customdata[0]}</b> — %{customdata[1]}<br>%{y}% (n=%{customdata[2]})<extra></extra>",
+        )
         fig.add_hline(y=50, line_dash="dot", line_width=1, line_color=pal.BASELINE,
                        annotation_text="Seuil 50%", annotation_font=dict(color=pal.INK_MUTED, size=10))
         fig.update_yaxes(range=[0, 100], ticksuffix="%")
@@ -187,9 +191,13 @@ class ChartBuilder:
             d, x="total", y="province", color="taux", orientation="h",
             color_continuous_scale=pal.DIVERGING, range_color=[0, 100],
             labels={"total": "Nombre de besoins", "province": "", "taux": "Taux %"},
-            custom_data=["province", "taux"],
+            text="taux", custom_data=["province", "taux"],
         )
-        fig.update_traces(hovertemplate="<b>%{customdata[0]}</b><br>%{x} besoins — taux %{customdata[1]}%<extra></extra>")
+        fig.update_traces(
+            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
+            textfont=dict(color=_inside_label_colors(d["taux"]), size=11, family=pal.FONT_FAMILY),
+            hovertemplate="<b>%{customdata[0]}</b><br>%{x} besoins — taux %{customdata[1]}%<extra></extra>",
+        )
         fig = self._round_bars(fig, bargap=0.25)
         fig.update_coloraxes(colorbar=dict(title="Taux %", tickfont=dict(color=pal.INK_MUTED)))
         return self._base_layout(fig, "Volume de besoins par province", "couleur = taux de satisfaction", show_legend=False)
