@@ -51,4 +51,18 @@ INK_MUTED = "#898781"
 GRID = "#e1e0d9"
 BASELINE = "#c3c2b7"
 
-FONT_FAMILY = "system-ui, -apple-system, 'Segoe UI', sans-serif"
+# Corps / données — IBM Plex Sans : dessinée pour des contextes denses en
+# données, lisible aux petites tailles (labels d'axes, hovers), signature
+# distincte de la stack système par défaut. Utilisée partout où du texte
+# porte de l'information (charts, KPI, UI).
+FONT_FAMILY = "'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif"
+
+# Titrage — Fraunces : serif à caractère chaleureux, réservée aux moments
+# narratifs (titre de page, marque en barre latérale) — jamais sur des
+# valeurs ou labels de graphique, pour ne pas nuire à la lisibilité des
+# petites tailles.
+DISPLAY_FONT = "'Fraunces', Georgia, 'Times New Roman', serif"
+
+# Chiffres clés — IBM Plex Mono : chasse fixe, renforce la précision des
+# grandes valeurs KPI (lecture "tableau de bord opérationnel", pas décoratif).
+MONO_FONT = "'IBM Plex Mono', 'SF Mono', Consolas, monospace"
