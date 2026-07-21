@@ -156,11 +156,14 @@ class ChartBuilder:
             text="taux", custom_data=["statut_migratoire", "taux", "part"],
         )
         fig.update_traces(
-            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
-            textfont=dict(color=_inside_label_colors(d["taux"]), size=11, family=pal.FONT_FAMILY),
+            texttemplate="%{text:.0f}%", textposition="outside",
+            textfont=dict(color=pal.INK_SECONDARY, size=11, family=pal.FONT_FAMILY),
             hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[2]}% des demandeurs — taux %{customdata[1]}%<extra></extra>",
         )
-        fig.update_xaxes(ticksuffix="%")
+        # Échelle fixée à 0-100% (comme tous les autres graphiques en %) pour
+        # une comparaison visuelle honnête entre graphiques — les barres de
+        # part du total sont donc courtes, d'où l'étiquette à l'extérieur.
+        fig.update_xaxes(range=[0, 100], ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.3)
         fig.update_coloraxes(colorbar=dict(title="Taux %", tickfont=dict(color=pal.INK_MUTED)))
         return self._base_layout(fig, "Profil des demandeurs par statut migratoire",
@@ -228,11 +231,14 @@ class ChartBuilder:
             text="taux", custom_data=["province", "taux", "part"],
         )
         fig.update_traces(
-            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
-            textfont=dict(color=_inside_label_colors(d["taux"]), size=11, family=pal.FONT_FAMILY),
+            texttemplate="%{text:.0f}%", textposition="outside",
+            textfont=dict(color=pal.INK_SECONDARY, size=11, family=pal.FONT_FAMILY),
             hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[2]}% des besoins — taux %{customdata[1]}%<extra></extra>",
         )
-        fig.update_xaxes(ticksuffix="%")
+        # Échelle fixée à 0-100% (comme tous les graphiques en %) pour une
+        # comparaison visuelle honnête — barres de part du total donc courtes,
+        # étiquette à l'extérieur.
+        fig.update_xaxes(range=[0, 100], ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.25)
         fig.update_coloraxes(colorbar=dict(title="Taux %", tickfont=dict(color=pal.INK_MUTED)))
         return self._base_layout(fig, "Volume de besoins par province", "longueur = part du total, couleur = taux de satisfaction", show_legend=False)
@@ -253,7 +259,7 @@ class ChartBuilder:
             hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]} / %{customdata[2]}<extra></extra>",
         )
         fig.add_vline(x=50, line_dash="dot", line_width=1, line_color=pal.BASELINE)
-        fig.update_xaxes(range=[0, 108], ticksuffix="%")
+        fig.update_xaxes(range=[0, 100], ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.25)
         return self._base_layout(fig, "Taux de satisfaction", "par province", show_legend=False)
 
@@ -278,7 +284,7 @@ class ChartBuilder:
             marker=dict(size=8, line=dict(width=2, color=pal.SURFACE)),
             hovertemplate="<b>%{customdata[0]}</b><br>%{x} : %{y}% (n=%{customdata[1]})<extra></extra>",
         )
-        fig.update_yaxes(ticksuffix="%")
+        fig.update_yaxes(range=[0, 100], ticksuffix="%")
         # Une seule étiquette par ligne — la dernière valeur — jamais un
         # nombre sur chaque point (illisible avec autant de mois × séries).
         for trace in fig.data:
