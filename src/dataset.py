@@ -62,6 +62,11 @@ class ConseilMigrantDataset:
         # subjective — d'où le nom pris_en_charge, pas "satisfait".
         df["pris_en_charge"] = df["pec_besoin"] == "Oui"
         df["periode"] = df["date_besoin"].dt.to_period("M").astype(str)
+        # Colonnes calendaires dérivées pour le filtre de granularité (année /
+        # semestre / trimestre / mois) — "periode" (mois) existe déjà ci-dessus.
+        df["annee_calendaire"] = df["date_besoin"].dt.year.astype("Int64").astype(str)
+        df["trimestre_calendaire"] = df["annee_calendaire"] + "-T" + df["date_besoin"].dt.quarter.astype("Int64").astype(str)
+        df["semestre_calendaire"] = df["annee_calendaire"] + "-S" + (((df["date_besoin"].dt.month - 1) // 6) + 1).astype("Int64").astype(str)
 
         # Ancienneté d'installation au moment du besoin (en années). Peut être
         # négative si la date d'arrivée est postérieure au besoin (incohérence

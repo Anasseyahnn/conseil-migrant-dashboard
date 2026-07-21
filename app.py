@@ -7,7 +7,7 @@ import streamlit as st
 from src.echarts_charts import EChartsBuilder
 from src.data_sources.excel_source import ExcelDataSource
 from src.dataset import ConseilMigrantDataset
-from src.filters import Filters
+from src.filters import GRANULARITE_COLONNES, Filters
 from src.ui import Theme
 
 st.set_page_config(page_title="Conseil Migrant — Tableau de bord", layout="wide", page_icon="🧭")
@@ -22,7 +22,7 @@ DATA_PATH = Path(__file__).parent / "data" / "sample" / "basemigrant_sample.xlsx
 # haché à la fonction cachée, elle force Streamlit à reconstruire l'objet au
 # lieu de resservir une instance construite par l'ancien code après un
 # redéploiement (sinon : AttributeError / KeyError sur les nouveaux champs).
-DATA_SCHEMA_VERSION = 2
+DATA_SCHEMA_VERSION = 3
 
 
 @st.cache_resource(show_spinner="Chargement des données…")
@@ -60,6 +60,16 @@ date_range = st.sidebar.date_input(
     min_value=min_date.date(), max_value=max_date.date(),
     key=fkey("periode"),
 )
+granularite = st.sidebar.selectbox(
+    "Filtrer par période calendaire", options=["Aucune", *GRANULARITE_COLONNES.keys()],
+    key=fkey("granularite"),
+)
+periode_valeurs: list[str] = []
+if granularite != "Aucune":
+    col = GRANULARITE_COLONNES[granularite]
+    options = sorted(df[col].dropna().unique())
+    periode_valeurs = st.sidebar.multiselect(granularite, options=options, key=fkey(f"periode_{granularite}"))
+
 sexes = st.sidebar.multiselect(
     "Genre", options=["M", "F"], default=["M", "F"],
     format_func=lambda x: "Masculin" if x == "M" else "Féminin",
@@ -84,6 +94,8 @@ st.sidebar.caption(f"{len(df)} enregistrements")
 filters = Filters(
     date_debut=date_range[0] if len(date_range) == 2 else None,
     date_fin=date_range[1] if len(date_range) == 2 else None,
+    periode_granularite=granularite,
+    periode_valeurs=periode_valeurs,
     sexes=sexes,
     provinces=provinces,
     besoins=besoins,
