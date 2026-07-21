@@ -57,8 +57,18 @@ class ConseilMigrantDataset:
             df["date_arrivee"] = pd.to_datetime(df["date_arrivee"], errors="coerce")
 
         df["genre"] = df["sexe"].map({"M": "Masculin", "F": "Féminin"}).fillna(df["sexe"])
-        df["satisfait"] = df["pec_besoin"] == "Oui"
+        # PEC_besoin = Prise En Charge du besoin (Oui/Non) : c'est une mesure
+        # opérationnelle (le besoin a-t-il été traité), pas une satisfaction
+        # subjective — d'où le nom pris_en_charge, pas "satisfait".
+        df["pris_en_charge"] = df["pec_besoin"] == "Oui"
         df["periode"] = df["date_besoin"].dt.to_period("M").astype(str)
+
+        # Ancienneté d'installation au moment du besoin (en années). Peut être
+        # négative si la date d'arrivée est postérieure au besoin (incohérence
+        # de saisie) — laissé tel quel ici, signalé par quality() et exclu des
+        # graphiques par tranche.
+        if "date_arrivee" in df.columns:
+            df["anciennete_ans"] = (df["date_besoin"] - df["date_arrivee"]).dt.days / 365.25
 
         return df.dropna(subset=["id"]) if "id" in df.columns else df
 
@@ -74,11 +84,27 @@ class ConseilMigrantDataset:
     @staticmethod
     def kpi(df: pd.DataFrame) -> dict:
         total = len(df)
-        satisfaits = int(df["satisfait"].sum()) if total else 0
-        taux = round(satisfaits / total * 100, 1) if total else 0.0
+        pris_en_charge = int(df["pris_en_charge"].sum()) if total else 0
+        taux = round(pris_en_charge / total * 100, 1) if total else 0.0
         return {
             "total": total,
-            "satisfaits": satisfaits,
-            "non_satisfaits": total - satisfaits,
+            "pris_en_charge": pris_en_charge,
+            "non_pris_en_charge": total - pris_en_charge,
             "taux": taux,
         }
+
+    @staticmethod
+    def quality(df: pd.DataFrame) -> dict:
+        """Contrôles de cohérence remontés à l'utilisateur plutôt qu'ignorés
+        silencieusement. Chaque entrée : (libellé, nombre de lignes concernées)."""
+        checks: dict[str, int] = {}
+        if "anciennete_ans" in df.columns:
+            checks["arrivée postérieure au besoin"] = int((df["anciennete_ans"] < 0).sum())
+            checks["date d'arrivée manquante"] = int(df["date_arrivee"].isna().sum())
+        checks["date de besoin manquante"] = int(df["date_besoin"].isna().sum())
+        for col in ("statut_migratoire", "province", "pays_origine"):
+            if col in df.columns:
+                manquants = int((df[col].isna() | (df[col].astype(str).str.strip() == "")).sum())
+                if manquants:
+                    checks[f"{col.replace('_', ' ')} manquant"] = manquants
+        return {k: v for k, v in checks.items() if v > 0}
