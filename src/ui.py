@@ -4,17 +4,12 @@ import streamlit as st
 
 from . import palette as pal
 
-ACCENT_HEX = {
-    "kpi-accent": pal.CATEGORICAL[0],
-    "kpi-good": pal.STATUS["good"],
-    "kpi-critical": pal.STATUS["critical"],
-}
-
 
 class Theme:
-    """Injecte le CSS responsive (mobile / tablette / desktop) et fournit les
-    composants d'habillage (tuiles KPI) alignés sur la palette du skill
-    dataviz — un seul endroit à toucher pour changer l'apparence globale."""
+    """Injecte le CSS responsive (mobile / tablette / desktop) et le
+    composant d'habillage (bande d'accroche) alignés sur la palette du
+    skill dataviz — un seul endroit à toucher pour changer l'apparence
+    globale. Les cartes KPI utilisent st.metric natif (voir app.py)."""
 
     CSS = f"""
     <style>
@@ -48,63 +43,28 @@ class Theme:
         margin-bottom: 1.1rem;
     }}
 
-    /* ---- tuiles KPI : grille adaptative, pas des colonnes Streamlit ---- */
-    .kpi-grid {{
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-        margin: 0.4rem 0 1.6rem 0;
-    }}
-    .kpi-tile {{
-        position: relative;
+    /* ---- cartes KPI (st.metric natif, border=True) ---- */
+    div[data-testid="stMetric"] {{
         background: {pal.SURFACE};
-        border: 1px solid {pal.GRID};
-        border-radius: 12px;
-        padding: 16px 18px 14px 18px;
+        border-radius: 12px !important;
         box-shadow: 0 1px 2px rgba(11,11,11,0.05);
+        padding: 14px 18px 12px 18px;
         transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
-        overflow: hidden;
     }}
-    .kpi-tile::before {{
-        content: "";
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 3px;
-        background: var(--accent);
-        opacity: 0.85;
-    }}
-    .kpi-tile:hover {{
+    div[data-testid="stMetric"]:hover {{
         transform: translateY(-2px);
         box-shadow: 0 8px 20px rgba(11,11,11,0.09);
-        border-color: var(--accent);
+        border-color: {pal.CATEGORICAL[0]} !important;
     }}
-    .kpi-top {{
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 6px;
-    }}
-    .kpi-label {{
+    div[data-testid="stMetricLabel"] {{
         font-size: 0.78rem;
-        color: {pal.INK_MUTED};
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.03em;
     }}
-    .kpi-icon {{
-        font-size: 1.05rem;
-        opacity: 0.9;
-    }}
-    .kpi-value {{
-        font-size: 1.7rem;
-        font-weight: 700;
-        color: {pal.INK_PRIMARY};
-        line-height: 1.15;
+    div[data-testid="stMetricValue"] {{
         font-variant-numeric: proportional-nums;
     }}
-    .kpi-accent {{ --accent: {pal.CATEGORICAL[0]}; }}
-    .kpi-good {{ --accent: {pal.STATUS['good']}; }}
-    .kpi-critical {{ --accent: {pal.STATUS['critical']}; }}
 
     /* ---- cartes graphiques ---- */
     div[data-testid="stPlotlyChart"] {{
@@ -172,21 +132,11 @@ class Theme:
     ::-webkit-scrollbar-thumb {{ background: {pal.BASELINE}; border-radius: 6px; }}
     ::-webkit-scrollbar-thumb:hover {{ background: {pal.INK_MUTED}; }}
 
-    /* ---- tablette ---- */
-    @media (max-width: 1024px) {{
-        .kpi-grid {{ grid-template-columns: repeat(4, 1fr); gap: 10px; }}
-        .kpi-value {{ font-size: 1.45rem; }}
-    }}
-
     /* ---- mobile ---- */
     @media (max-width: 640px) {{
         .block-container {{ padding-left: 0.8rem; padding-right: 0.8rem; }}
         h1 {{ font-size: 1.3rem !important; }}
         .hero-sub {{ font-size: 0.82rem; }}
-        .kpi-grid {{ grid-template-columns: repeat(2, 1fr); gap: 8px; }}
-        .kpi-tile {{ padding: 12px 14px 10px 14px; }}
-        .kpi-value {{ font-size: 1.3rem; }}
-        .kpi-label {{ font-size: 0.68rem; }}
     }}
     </style>
     """
@@ -200,15 +150,3 @@ class Theme:
         st.markdown(f"# {title}")
         if subtitle:
             st.markdown(f'<div class="hero-sub">{subtitle}</div>', unsafe_allow_html=True)
-
-    @staticmethod
-    def kpi_grid(tiles: list[tuple[str, str, str, str]]) -> None:
-        """tiles: liste de (label, valeur formatée, classe de couleur, icône)."""
-        cells = "".join(
-            f'<div class="kpi-tile {css_class}">'
-            f'<div class="kpi-top"><span class="kpi-label">{label}</span>'
-            f'<span class="kpi-icon">{icon}</span></div>'
-            f'<div class="kpi-value">{value}</div></div>'
-            for label, value, css_class, icon in tiles
-        )
-        st.markdown(f'<div class="kpi-grid">{cells}</div>', unsafe_allow_html=True)
