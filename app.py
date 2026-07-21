@@ -4,7 +4,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from src.charts import ChartBuilder
+from src.echarts_charts import EChartsBuilder
 from src.data_sources.excel_source import ExcelDataSource
 from src.dataset import ConseilMigrantDataset
 from src.filters import Filters
@@ -98,7 +98,7 @@ kpi = dataset.kpi(dff)
 kpi_all = dataset.kpi(df)
 quality = dataset.quality(df)
 is_filtered = len(dff) != len(df)
-charts = ChartBuilder()
+charts = EChartsBuilder()
 
 theme.hero("Conseil Migrant — Tableau de bord opérationnel",
            "Suivi des besoins exprimés, taux de prise en charge et couverture par profil, province et statut migratoire.")
@@ -139,29 +139,38 @@ tab1, tab2, tab3, tab4 = st.tabs(["Vue d'ensemble", "Profils", "Géographie", "D
 with tab1:
     # La synthèse pilotage en tête : la première chose à voir est où la prise
     # en charge décroche, pas la répartition brute.
-    st.plotly_chart(charts.sous_couverture(dff, kpi["taux"]), use_container_width=True,
-                    config={"displayModeBar": False})
+    st.iframe(charts.sous_couverture(dff, kpi["taux"]), height=440)
     col1, col2 = st.columns([3, 2])
-    col1.plotly_chart(charts.evolution_annuelle(dff), use_container_width=True, config={"displayModeBar": False})
-    col2.plotly_chart(charts.repartition_besoins(dff), use_container_width=True, config={"displayModeBar": False})
+    with col1:
+        st.iframe(charts.evolution_annuelle(dff), height=440)
+    with col2:
+        st.iframe(charts.repartition_besoins(dff), height=440)
 
 with tab2:
     col1, col2 = st.columns([2, 3])
-    col1.plotly_chart(charts.par_genre(dff), use_container_width=True, config={"displayModeBar": False})
-    col2.plotly_chart(charts.statut_migratoire(dff), use_container_width=True, config={"displayModeBar": False})
-    st.plotly_chart(charts.taux_genre_besoin(dff), use_container_width=True, config={"displayModeBar": False})
+    with col1:
+        st.iframe(charts.par_genre(dff), height=440)
+    with col2:
+        st.iframe(charts.statut_migratoire(dff), height=440)
+    st.iframe(charts.taux_genre_besoin(dff), height=440)
     col3, col4 = st.columns([1, 1])
-    col3.plotly_chart(charts.prise_en_charge_anciennete(dff), use_container_width=True, config={"displayModeBar": False})
-    col4.plotly_chart(charts.par_nombre_enfants(dff), use_container_width=True, config={"displayModeBar": False})
+    with col3:
+        st.iframe(charts.prise_en_charge_anciennete(dff), height=440)
+    with col4:
+        st.iframe(charts.par_nombre_enfants(dff), height=440)
     col5, col6 = st.columns([3, 2])
-    col5.plotly_chart(charts.par_pays_origine(dff), use_container_width=True, config={"displayModeBar": False})
-    col6.plotly_chart(charts.par_statut_migratoire_donut(dff), use_container_width=True, config={"displayModeBar": False})
+    with col5:
+        st.iframe(charts.par_pays_origine(dff), height=480)
+    with col6:
+        st.iframe(charts.par_statut_migratoire_donut(dff), height=440)
 
 with tab3:
     col1, col2 = st.columns([1, 1])
-    col1.plotly_chart(charts.par_province(dff), use_container_width=True, config={"displayModeBar": False})
-    col2.plotly_chart(charts.taux_province(dff), use_container_width=True, config={"displayModeBar": False})
-    st.plotly_chart(charts.evolution_mensuelle(dff), use_container_width=True, config={"displayModeBar": False})
+    with col1:
+        st.iframe(charts.par_province(dff), height=440)
+    with col2:
+        st.iframe(charts.taux_province(dff), height=440)
+    st.iframe(charts.evolution_mensuelle(dff), height=460)
 
 with tab4:
     st.subheader("Cas non traités — suivi individuel")
