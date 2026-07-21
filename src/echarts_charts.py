@@ -396,7 +396,11 @@ class EChartsBuilder:
             return self._empty("Où la prise en charge décroche", f"aucun segment d'au moins {min_n} personnes")
         d = pd.DataFrame(rows).sort_values("taux").head(bottom).sort_values("taux", ascending=False)
 
-        opt = base_option("Où la prise en charge décroche", f"segments les moins couverts (≥ {min_n} personnes)")
+        opt = base_option(
+            "Où la prise en charge décroche",
+            f"les {bottom} segments les PLUS FAIBLES uniquement (≥ {min_n} personnes) — "
+            "des segments au-dessus du global existent, non montrés ici",
+        )
         opt.update({
             "grid": {"left": 190, "right": 40, "top": 40, "bottom": 30},
             "xAxis": {"type": "value", "min": 0, "max": 100, "interval": 20,
