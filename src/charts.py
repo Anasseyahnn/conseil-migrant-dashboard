@@ -166,11 +166,12 @@ class ChartBuilder:
             textfont=dict(color=_inside_label_colors(d["taux"]), size=11, family=pal.FONT_FAMILY),
             hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[2]}% des demandeurs (personnes uniques) — taux de satisfaction de leurs besoins %{customdata[1]}%<extra></extra>",
         )
-        # Auto-scale volontaire (pas 0-100% comme les autres graphiques) :
-        # une répartition entre 7 catégories ne peut mathématiquement pas
-        # s'approcher de 100% — sur une échelle fixe, les barres se tassent
-        # toutes sous les 20% et deviennent illisibles à comparer.
-        fig.update_xaxes(ticksuffix="%")
+        # Échelle 0-20% commune à ce graphique ET à "Volume de besoins par
+        # province" (même famille de mesure : part du total entre N
+        # catégories) — jamais 0-100% (les rendrait illisibles, tassés sous
+        # 20%) ni deux échelles différentes entre les deux (trompeur : une
+        # même longueur de barre représenterait des valeurs différentes).
+        fig.update_xaxes(range=[0, 20], ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.3)
         fig.update_coloraxes(colorbar=dict(title="Taux %", tickfont=dict(color=pal.INK_MUTED)))
         return self._base_layout(fig, "Profil des demandeurs par statut migratoire",
@@ -243,10 +244,10 @@ class ChartBuilder:
             textfont=dict(color=_inside_label_colors(d["taux"]), size=11, family=pal.FONT_FAMILY),
             hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[2]}% des besoins — taux %{customdata[1]}%<extra></extra>",
         )
-        # Auto-scale volontaire (pas 0-100%) : une répartition entre 10
-        # provinces ne peut pas s'approcher de 100%, une échelle fixe
-        # tasserait toutes les barres sous les 15% et les rendrait illisibles.
-        fig.update_xaxes(ticksuffix="%")
+        # Même échelle 0-20% que "Profil des demandeurs par statut
+        # migratoire" — même famille de mesure (part du total), comparables
+        # entre eux visuellement, jamais deux échelles différentes.
+        fig.update_xaxes(range=[0, 20], ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.25)
         fig.update_coloraxes(colorbar=dict(title="Taux %", tickfont=dict(color=pal.INK_MUTED)))
         return self._base_layout(fig, "Volume de besoins par province", "longueur = part du total, couleur = taux de satisfaction", show_legend=False)
