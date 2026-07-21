@@ -36,6 +36,7 @@ df = dataset.df
 theme.sidebar_brand("Conseil Migrant", "Tableau de bord opérationnel")
 st.sidebar.divider()
 
+theme.sidebar_section("Période & profil")
 min_date, max_date = df["date_besoin"].min(), df["date_besoin"].max()
 date_range = st.sidebar.date_input(
     "Période", value=(min_date.date(), max_date.date()),
@@ -45,13 +46,17 @@ sexes = st.sidebar.multiselect(
     "Genre", options=["M", "F"], default=["M", "F"],
     format_func=lambda x: "Masculin" if x == "M" else "Féminin",
 )
-provinces = st.sidebar.multiselect("Province", options=sorted(df["province"].unique()))
-besoins = st.sidebar.multiselect("Type de besoin", options=sorted(df["besoin"].unique()))
-pec = st.sidebar.radio("Prise en charge", options=["Toutes", "Oui", "Non"], horizontal=True)
-statuts = st.sidebar.multiselect("Statut migratoire", options=sorted(df["statut_migratoire"].unique()))
-pays = st.sidebar.multiselect("Pays d'origine", options=sorted(df["pays_origine"].unique()))
 enf_min, enf_max = int(df["nombre_enfants"].min()), int(df["nombre_enfants"].max())
 nb_enfants = st.sidebar.slider("Nombre d'enfants", enf_min, enf_max, (enf_min, enf_max))
+
+theme.sidebar_section("Localisation & origine")
+provinces = st.sidebar.multiselect("Province", options=sorted(df["province"].unique()))
+pays = st.sidebar.multiselect("Pays d'origine", options=sorted(df["pays_origine"].unique()))
+statuts = st.sidebar.multiselect("Statut migratoire", options=sorted(df["statut_migratoire"].unique()))
+
+theme.sidebar_section("Besoin & suivi")
+besoins = st.sidebar.multiselect("Type de besoin", options=sorted(df["besoin"].unique()))
+pec = st.sidebar.radio("Prise en charge", options=["Toutes", "Oui", "Non"], horizontal=True)
 
 st.sidebar.divider()
 st.sidebar.caption(f"Données : {min_date.date()} – {max_date.date()}")
