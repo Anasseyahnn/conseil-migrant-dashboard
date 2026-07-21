@@ -169,7 +169,50 @@ class Theme:
     section[data-testid="stSidebar"] .stMarkdown p,
     section[data-testid="stSidebar"] label {{
         font-weight: 600;
+        font-size: 0.82rem;
+        letter-spacing: 0.01em;
         color: {pal.INK_SECONDARY};
+    }}
+    .sidebar-eyebrow {{
+        font-family: {pal.FONT_FAMILY};
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: {pal.CATEGORICAL[0]};
+        margin: 1.1rem 0 0.3rem 0;
+    }}
+    .sidebar-eyebrow:first-of-type {{ margin-top: 0.2rem; }}
+
+    /* ---- widgets de filtre : dropdowns, tags, radio, slider, date ---- */
+    section[data-testid="stSidebar"] [data-baseweb="select"] > div {{
+        border-radius: 10px !important;
+        border-color: {pal.GRID} !important;
+        background: {pal.PAGE} !important;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }}
+    section[data-testid="stSidebar"] [data-baseweb="select"]:focus-within > div {{
+        border-color: {pal.CATEGORICAL[0]} !important;
+        box-shadow: 0 0 0 3px {pal.CATEGORICAL[0]}22 !important;
+    }}
+    section[data-testid="stSidebar"] [data-baseweb="tag"] {{
+        border-radius: 7px !important;
+        box-shadow: 0 1px 2px rgba(11,11,11,0.08);
+    }}
+    div[data-testid="stDateInputField"] {{
+        border-radius: 10px !important;
+        border-color: {pal.GRID} !important;
+        background: {pal.PAGE} !important;
+    }}
+    div[data-testid="stSliderTickBar"] {{
+        color: {pal.INK_MUTED};
+        font-size: 0.72rem;
+    }}
+    div[data-testid="stSlider"] [role="slider"] {{
+        box-shadow: 0 2px 6px {pal.CATEGORICAL[0]}55 !important;
+    }}
+    div[data-testid="stRadioOption"] label {{
+        font-weight: 500 !important;
     }}
     .sidebar-brand {{
         display: flex;
@@ -250,3 +293,9 @@ class Theme:
         )
         if caption:
             st.sidebar.caption(caption)
+
+    @staticmethod
+    def sidebar_section(label: str) -> None:
+        """Éveille une hiérarchie dans la pile de filtres — sans ça, la
+        sidebar est une liste plate de champs sans structure de lecture."""
+        st.sidebar.markdown(f'<div class="sidebar-eyebrow">{label}</div>', unsafe_allow_html=True)
