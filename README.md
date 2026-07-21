@@ -2,9 +2,7 @@
 
 Tableau de bord opérationnel de suivi des besoins exprimés par les bénéficiaires de Conseil Migrant : volume, taux de satisfaction, répartition par genre/province/statut migratoire, évolution temporelle.
 
-Deux implémentations, même source de données :
-- **`shiny/`** — R / flexdashboard, version flagship (filtres avancés, visualisation poussée).
-- **`streamlit/`** — Python / Streamlit, hébergement simple sur Streamlit Community Cloud.
+Implémentation **Streamlit** (Python), pensée pour un hébergement simple et gratuit sur Streamlit Community Cloud. La logique reprend et fusionne le meilleur de deux versions R/flexdashboard existantes (historique interne, non versionnées ici), avec des filtres avancés et une nouvelle donnée source.
 
 ## Données et confidentialité
 
