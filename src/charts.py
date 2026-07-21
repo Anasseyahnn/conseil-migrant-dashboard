@@ -85,9 +85,13 @@ class ChartBuilder:
             d, x="annee_besoin", y="n", color="pec_besoin", barmode="group",
             color_discrete_map=PEC_COLOR,
             labels={"annee_besoin": "Année", "n": "Nombre de besoins", "pec_besoin": "Statut"},
-            custom_data=["pec_besoin"],
+            text="n", custom_data=["pec_besoin"],
         )
-        fig.update_traces(hovertemplate="<b>%{customdata[0]}</b><br>%{y} besoins — %{x}<extra></extra>")
+        fig.update_traces(
+            textposition="inside", insidetextanchor="middle",
+            textfont=dict(color="#ffffff", size=11, family=pal.FONT_FAMILY),
+            hovertemplate="<b>%{customdata[0]}</b><br>%{y} besoins — %{x}<extra></extra>",
+        )
         fig = self._round_bars(fig)
         return self._base_layout(fig, "Besoins reçus vs satisfaits", "par année")
 
@@ -99,9 +103,13 @@ class ChartBuilder:
             d, x="n", y="besoin", color="statut", orientation="h",
             color_discrete_map=STATUT_COLOR,
             labels={"n": "Nombre", "besoin": ""},
-            custom_data=["besoin", "statut"],
+            text="n", custom_data=["besoin", "statut"],
         )
-        fig.update_traces(hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]} : %{x}<extra></extra>")
+        fig.update_traces(
+            textposition="inside", insidetextanchor="middle",
+            textfont=dict(color="#ffffff", size=11, family=pal.FONT_FAMILY),
+            hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]} : %{x}<extra></extra>",
+        )
         fig = self._round_bars(fig, bargap=0.3)
         return self._base_layout(fig, "Types de besoins exprimés", "volume et statut")
 
@@ -114,9 +122,13 @@ class ChartBuilder:
             d, x="genre", y="n", color="statut", barmode="group",
             color_discrete_map=STATUT_COLOR,
             labels={"genre": "", "n": "Nombre"},
-            custom_data=["genre", "statut"],
+            text="n", custom_data=["genre", "statut"],
         )
-        fig.update_traces(hovertemplate="<b>%{customdata[0]}</b> — %{customdata[1]}<br>%{y} besoins<extra></extra>")
+        fig.update_traces(
+            textposition="inside", insidetextanchor="middle",
+            textfont=dict(color="#ffffff", size=11, family=pal.FONT_FAMILY),
+            hovertemplate="<b>%{customdata[0]}</b> — %{customdata[1]}<br>%{y} besoins<extra></extra>",
+        )
         fig = self._round_bars(fig, bargap=0.45)
         return self._base_layout(fig, "Besoins par genre", "satisfaits vs non satisfaits")
 
@@ -173,9 +185,11 @@ class ChartBuilder:
         )
         fig = px.bar(d, x="n", y="pays_origine", orientation="h",
                       labels={"n": "Nombre de bénéficiaires", "pays_origine": ""},
-                      custom_data=["pays_origine"])
+                      text="n", custom_data=["pays_origine"])
         fig.update_traces(
             marker_color=pal.CATEGORICAL[0],
+            textposition="inside", insidetextanchor="middle",
+            textfont=dict(color="#ffffff", size=11, family=pal.FONT_FAMILY),
             hovertemplate="<b>%{customdata[0]}</b><br>%{x} bénéficiaires<extra></extra>",
         )
         fig = self._round_bars(fig, bargap=0.3)
@@ -242,6 +256,14 @@ class ChartBuilder:
             marker=dict(size=8, line=dict(width=2, color=pal.SURFACE)),
             hovertemplate="<b>%{customdata[0]}</b><br>%{x} : %{y} besoins<extra></extra>",
         )
+        # Une seule étiquette par ligne — la dernière valeur — jamais un
+        # nombre sur chaque point (illisible avec autant de mois × séries).
+        for trace in fig.data:
+            values = list(trace.y)
+            labels = [""] * (len(values) - 1) + [str(values[-1])] if values else []
+            trace.update(mode="lines+markers+text", text=labels,
+                          textposition="top center",
+                          textfont=dict(color=trace.line.color, size=11, family=pal.FONT_FAMILY))
         return self._base_layout(fig, "Évolution mensuelle des besoins",
                                   "par province — top 6, reste replié en «Autres»")
 
