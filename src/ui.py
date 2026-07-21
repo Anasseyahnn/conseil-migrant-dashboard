@@ -239,6 +239,18 @@ class Theme:
     }}
 
     /* ---- boutons & inputs ---- */
+    section[data-testid="stSidebar"] .stButton button {{
+        border-radius: 8px !important;
+        border-color: {pal.GRID} !important;
+        color: {pal.INK_SECONDARY} !important;
+        font-weight: 600 !important;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }}
+    section[data-testid="stSidebar"] .stButton button:hover {{
+        background: {pal.PAGE} !important;
+        border-color: {pal.INK_MUTED} !important;
+        color: {pal.INK_PRIMARY} !important;
+    }}
     .stDownloadButton button {{
         border-radius: 8px !important;
         border-color: {pal.CATEGORICAL[0]} !important;
