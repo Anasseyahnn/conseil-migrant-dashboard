@@ -28,7 +28,7 @@ CATEGORICAL = [
 ]
 MUTED = "#898781"  # "Autres" / agrégat — jamais un slot numéroté
 
-# Statut — état (satisfait / non satisfait), jamais recyclé pour une série.
+# Statut — état (pris en charge / non pris en charge), jamais recyclé pour une série.
 # Adouci (21/07), revalidé : vert/rouge ΔE 8.7 deutan (>= cible 8), contraste
 # >= 3:1 pour les deux — PASS sans réserve.
 STATUS = {
@@ -36,7 +36,7 @@ STATUS = {
     "critical": "#dc7070",
 }
 
-# Diverging — polarité (taux de satisfaction), pôles + neutre gris médian.
+# Diverging — polarité (taux de prise en charge), pôles + neutre gris médian.
 DIVERGING = ["#dc7070", "#f0efec", "#4488db"]  # rouge -> gris -> bleu (adoucis)
 
 # Séquentiel — magnitude, une seule teinte bleu, clair -> foncé.

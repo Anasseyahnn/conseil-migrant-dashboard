@@ -66,10 +66,24 @@ filters = Filters(
 dff = dataset.filtered(filters)
 kpi = dataset.kpi(dff)
 kpi_all = dataset.kpi(df)
+quality = dataset.quality(df)
+is_filtered = len(dff) != len(df)
 charts = ChartBuilder()
 
 theme.hero("Conseil Migrant — Tableau de bord opérationnel",
-           "Suivi des besoins exprimés, taux de satisfaction et couverture par profil, province et statut migratoire.")
+           "Suivi des besoins exprimés, taux de prise en charge et couverture par profil, province et statut migratoire.")
+
+# Bandeau qualité de données : signale les incohérences plutôt que de les
+# ignorer silencieusement. Replié par défaut pour ne pas surcharger la vue.
+if quality:
+    with st.expander(f"⚠️ Qualité des données — {len(quality)} contrôle(s) à vérifier", expanded=False):
+        st.caption(
+            "Ces lignes restent comptées dans les totaux mais peuvent fausser "
+            "certaines lectures (notamment l'ancienneté). À corriger à la source."
+        )
+        for libelle, n in quality.items():
+            pct = n / len(df) * 100
+            st.markdown(f"- **{n}** ligne(s) — {libelle} *(≈ {pct:.1f} % du total)*")
 
 # Tendance mensuelle du volume filtré, pour la sparkline de "Besoins reçus".
 spark = dff.groupby("periode").size().sort_index()
@@ -79,17 +93,24 @@ c1.metric(
     "Besoins reçus", f"{kpi['total']:,}".replace(",", " "),
     chart_data=spark if len(spark) > 1 else None, chart_type="area", border=True,
 )
-c2.metric("Besoins satisfaits", f"{kpi['satisfaits']:,}".replace(",", " "), border=True)
+c2.metric("Besoins pris en charge", f"{kpi['pris_en_charge']:,}".replace(",", " "), border=True)
 c3.metric(
-    "Taux de satisfaction", f"{kpi['taux']}%",
-    delta=f"{kpi['taux'] - kpi_all['taux']:+.1f} pt", delta_color="normal",
-    delta_description="vs global", border=True,
+    "Taux de prise en charge", f"{kpi['taux']}%",
+    # Le delta n'a de sens que comparé à une référence : on ne l'affiche que
+    # quand un filtre est actif (écart du segment filtré vs l'ensemble).
+    delta=f"{kpi['taux'] - kpi_all['taux']:+.1f} pt" if is_filtered else None,
+    delta_color="normal",
+    delta_description="vs ensemble" if is_filtered else None, border=True,
 )
-c4.metric("Non satisfaits", f"{kpi['non_satisfaits']:,}".replace(",", " "), border=True)
+c4.metric("Non pris en charge", f"{kpi['non_pris_en_charge']:,}".replace(",", " "), border=True)
 
-tab1, tab2, tab3, tab4 = st.tabs(["Vue d'ensemble", "Genre & Statut", "Géographie", "Données"])
+tab1, tab2, tab3, tab4 = st.tabs(["Vue d'ensemble", "Profils", "Géographie", "Données"])
 
 with tab1:
+    # La synthèse pilotage en tête : la première chose à voir est où la prise
+    # en charge décroche, pas la répartition brute.
+    st.plotly_chart(charts.sous_couverture(dff, kpi["taux"]), use_container_width=True,
+                    config={"displayModeBar": False})
     col1, col2 = st.columns([3, 2])
     col1.plotly_chart(charts.evolution_annuelle(dff), use_container_width=True, config={"displayModeBar": False})
     col2.plotly_chart(charts.repartition_besoins(dff), use_container_width=True, config={"displayModeBar": False})
@@ -99,9 +120,12 @@ with tab2:
     col1.plotly_chart(charts.par_genre(dff), use_container_width=True, config={"displayModeBar": False})
     col2.plotly_chart(charts.statut_migratoire(dff), use_container_width=True, config={"displayModeBar": False})
     st.plotly_chart(charts.taux_genre_besoin(dff), use_container_width=True, config={"displayModeBar": False})
-    col3, col4 = st.columns([3, 2])
-    col3.plotly_chart(charts.par_pays_origine(dff), use_container_width=True, config={"displayModeBar": False})
-    col4.plotly_chart(charts.par_statut_migratoire_donut(dff), use_container_width=True, config={"displayModeBar": False})
+    col3, col4 = st.columns([1, 1])
+    col3.plotly_chart(charts.prise_en_charge_anciennete(dff), use_container_width=True, config={"displayModeBar": False})
+    col4.plotly_chart(charts.par_nombre_enfants(dff), use_container_width=True, config={"displayModeBar": False})
+    col5, col6 = st.columns([3, 2])
+    col5.plotly_chart(charts.par_pays_origine(dff), use_container_width=True, config={"displayModeBar": False})
+    col6.plotly_chart(charts.par_statut_migratoire_donut(dff), use_container_width=True, config={"displayModeBar": False})
 
 with tab3:
     col1, col2 = st.columns([1, 1])
