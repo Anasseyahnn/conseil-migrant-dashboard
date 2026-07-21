@@ -47,7 +47,7 @@ class EChartsBuilder:
 
         opt = base_option("Besoins reçus vs pris en charge", "part par année")
         opt.update({
-            "legend": {"top": 28, "right": 0, "textStyle": {"color": pal.INK_SECONDARY, "fontSize": 11}},
+            "legend": {"top": 48, "right": 0, "textStyle": {"color": pal.INK_SECONDARY, "fontSize": 11}},
             "grid": {"left": 45, "right": 20, "top": 68, "bottom": 30},
             "xAxis": {"type": "category", "data": [str(int(a)) for a in annees], **axis_style()},
             "yAxis": {"type": "value", "max": 100, "axisLabel": {"formatter": "{value}%", "color": pal.INK_MUTED},
@@ -73,7 +73,7 @@ class EChartsBuilder:
 
         opt = base_option("Types de besoins exprimés", "part prise en charge / non prise en charge")
         opt.update({
-            "legend": {"top": 28, "right": 0, "textStyle": {"color": pal.INK_SECONDARY, "fontSize": 11}},
+            "legend": {"top": 48, "right": 0, "textStyle": {"color": pal.INK_SECONDARY, "fontSize": 11}},
             "grid": {"left": 130, "right": 20, "top": 68, "bottom": 30},
             "xAxis": {"type": "value", "max": 100, "axisLabel": {"formatter": "{value}%", "color": pal.INK_MUTED},
                       "splitLine": axis_style()["splitLine"]},
@@ -101,7 +101,7 @@ class EChartsBuilder:
 
         opt = base_option("Besoins par genre", "part prise en charge / non prise en charge")
         opt.update({
-            "legend": {"top": 28, "right": 0, "textStyle": {"color": pal.INK_SECONDARY, "fontSize": 11}},
+            "legend": {"top": 48, "right": 0, "textStyle": {"color": pal.INK_SECONDARY, "fontSize": 11}},
             "grid": {"left": 45, "right": 20, "top": 68, "bottom": 30},
             "xAxis": {"type": "category", "data": genres, **axis_style()},
             "yAxis": {"type": "value", "max": 100, "axisLabel": {"formatter": "{value}%", "color": pal.INK_MUTED},
@@ -165,7 +165,7 @@ class EChartsBuilder:
 
         opt = base_option("Taux de prise en charge croisé", "par type de besoin et par genre")
         opt.update({
-            "legend": {"top": 28, "right": 0, "textStyle": {"color": pal.INK_SECONDARY, "fontSize": 11}},
+            "legend": {"top": 48, "right": 0, "textStyle": {"color": pal.INK_SECONDARY, "fontSize": 11}},
             "grid": {"left": 45, "right": 20, "top": 68, "bottom": 30},
             "xAxis": {"type": "category", "data": besoins, **axis_style()},
             "yAxis": {"type": "value", "max": 100, "axisLabel": {"formatter": "{value}%", "color": pal.INK_MUTED},
@@ -287,7 +287,7 @@ class EChartsBuilder:
         opt = base_option("Évolution mensuelle des besoins",
                            "part par province, par mois — top 6, reste replié en «Autres»")
         opt.update({
-            "legend": {"top": 28, "textStyle": {"color": pal.INK_SECONDARY, "fontSize": 11}},
+            "legend": {"top": 48, "textStyle": {"color": pal.INK_SECONDARY, "fontSize": 11}},
             "grid": {"left": 45, "right": 20, "top": 78, "bottom": 50},
             "xAxis": {"type": "category", "data": periodes, "axisLabel": {"rotate": 45, "color": pal.INK_MUTED, "fontSize": 10},
                       "axisLine": axis_style()["axisLine"]},
