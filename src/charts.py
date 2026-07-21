@@ -9,6 +9,10 @@ from . import palette as pal
 STATUT_LABEL = {True: "Satisfait", False: "Non satisfait"}
 STATUT_COLOR = {"Satisfait": pal.STATUS["good"], "Non satisfait": pal.STATUS["critical"]}
 PEC_COLOR = {"Oui": pal.STATUS["good"], "Non": pal.STATUS["critical"]}
+# Rouge/vert sont réservés au statut de satisfaction (NPS) — le genre ne
+# doit jamais emprunter ces teintes, pour ne pas laisser croire à un signal
+# de satisfaction là où il n'y en a pas.
+GENRE_COLOR = {"Masculin": "#2a78d6", "Féminin": "#FF6347"}  # bleu / tomate
 
 
 def _inside_label_colors(taux_values) -> list[str]:
@@ -159,19 +163,21 @@ class ChartBuilder:
             .reset_index()
         )
         d["taux"] = (d["taux"] * 100).round(1)
-        genres = sorted(d["genre"].unique())
-        color_map = {g: pal.CATEGORICAL[i] for i, g in enumerate(genres)}
         fig = px.bar(
             d, x="besoin", y="taux", color="genre", barmode="group",
-            color_discrete_map=color_map,
+            color_discrete_map=GENRE_COLOR,
             labels={"besoin": "", "taux": "Taux de satisfaction (%)"},
             text="taux", custom_data=["besoin", "genre", "n"],
         )
         fig.update_traces(
             texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
-            textfont=dict(color="#ffffff", size=11, family=pal.FONT_FAMILY),
             hovertemplate="<b>%{customdata[0]}</b> — %{customdata[1]}<br>%{y}% (n=%{customdata[2]})<extra></extra>",
         )
+        # Contraste : blanc lisible sur le bleu, mais pas sur le tomate (trop
+        # clair) — encre foncée pour Féminin.
+        for trace in fig.data:
+            text_color = pal.INK_PRIMARY if trace.name == "Féminin" else "#ffffff"
+            trace.update(textfont=dict(color=text_color, size=11, family=pal.FONT_FAMILY))
         fig.add_hline(y=50, line_dash="dot", line_width=1, line_color=pal.BASELINE,
                        annotation_text="Seuil 50%", annotation_font=dict(color=pal.INK_MUTED, size=10))
         fig.update_yaxes(range=[0, 100], ticksuffix="%")
