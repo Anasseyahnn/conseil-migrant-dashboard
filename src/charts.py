@@ -194,20 +194,21 @@ class ChartBuilder:
         return self._base_layout(fig, "Taux de satisfaction croisé", "par type de besoin et par genre")
 
     def par_pays_origine(self, df: pd.DataFrame, top_n: int = 10) -> go.Figure:
-        total = len(df)
-        d = df.groupby("pays_origine").size().reset_index(name="n")
-        d["pct"] = (d["n"] / total * 100).round(1)
-        d = d.sort_values("pct", ascending=False).head(top_n).sort_values("pct")
-        fig = px.bar(d, x="pct", y="pays_origine", orientation="h",
-                      labels={"pct": "Part des bénéficiaires (%)", "pays_origine": ""},
-                      text="pct", custom_data=["pays_origine", "n"])
+        # Seul graphique en valeur absolue : les parts (%) sur un top 10 avec
+        # des effectifs proches (6-8% chacun) sont trop peu différenciantes.
+        d = (
+            df.groupby("pays_origine").size().reset_index(name="n")
+            .sort_values("n", ascending=False).head(top_n).sort_values("n")
+        )
+        fig = px.bar(d, x="n", y="pays_origine", orientation="h",
+                      labels={"n": "Nombre de bénéficiaires", "pays_origine": ""},
+                      text="n", custom_data=["pays_origine"])
         fig.update_traces(
             marker_color=pal.CATEGORICAL[0],
-            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
+            textposition="inside", insidetextanchor="middle",
             textfont=dict(color="#ffffff", size=11, family=pal.FONT_FAMILY),
-            hovertemplate="<b>%{customdata[0]}</b><br>%{x}% des bénéficiaires (n=%{customdata[1]})<extra></extra>",
+            hovertemplate="<b>%{customdata[0]}</b><br>%{x} bénéficiaires<extra></extra>",
         )
-        fig.update_xaxes(ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.3)
         return self._base_layout(fig, f"Top {top_n} pays d'origine", "", show_legend=False)
 
