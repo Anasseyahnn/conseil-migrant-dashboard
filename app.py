@@ -17,13 +17,20 @@ theme.inject()
 
 DATA_PATH = Path(__file__).parent / "data" / "sample" / "basemigrant_sample.xlsx"
 
+# Version du schéma de données : à incrémenter dès que _normalize / les
+# colonnes dérivées / les méthodes du dataset changent. Passée comme argument
+# haché à la fonction cachée, elle force Streamlit à reconstruire l'objet au
+# lieu de resservir une instance construite par l'ancien code après un
+# redéploiement (sinon : AttributeError / KeyError sur les nouveaux champs).
+DATA_SCHEMA_VERSION = 2
+
 
 @st.cache_resource(show_spinner="Chargement des données…")
-def load_dataset(path: str) -> ConseilMigrantDataset:
+def load_dataset(path: str, schema_version: int) -> ConseilMigrantDataset:
     return ConseilMigrantDataset(ExcelDataSource(path)).load()
 
 
-dataset = load_dataset(str(DATA_PATH))
+dataset = load_dataset(str(DATA_PATH), DATA_SCHEMA_VERSION)
 df = dataset.df
 
 st.sidebar.markdown("## 🧭 Conseil Migrant")
