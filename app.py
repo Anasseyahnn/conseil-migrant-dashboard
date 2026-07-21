@@ -36,27 +36,46 @@ df = dataset.df
 theme.sidebar_brand("Conseil Migrant", "Tableau de bord opérationnel")
 st.sidebar.divider()
 
+# Suffixe de version dans chaque clé de widget : incrémenter force Streamlit
+# à monter des instances neuves (donc réellement vides) au clic sur
+# Réinitialiser. Un simple session_state.pop()+rerun() laisse certains
+# widgets (multiselect notamment) avec leurs tags affichés côté navigateur
+# même si la valeur Python est bien repassée à vide — testé et confirmé.
+if "filters_reset_version" not in st.session_state:
+    st.session_state.filters_reset_version = 0
+
+
+def fkey(name: str) -> str:
+    return f"f_{name}_{st.session_state.filters_reset_version}"
+
+
+if st.sidebar.button("↺ Réinitialiser les filtres", use_container_width=True):
+    st.session_state.filters_reset_version += 1
+    st.rerun()
+
 theme.sidebar_section("Période & profil")
 min_date, max_date = df["date_besoin"].min(), df["date_besoin"].max()
 date_range = st.sidebar.date_input(
     "Période", value=(min_date.date(), max_date.date()),
     min_value=min_date.date(), max_value=max_date.date(),
+    key=fkey("periode"),
 )
 sexes = st.sidebar.multiselect(
     "Genre", options=["M", "F"], default=["M", "F"],
     format_func=lambda x: "Masculin" if x == "M" else "Féminin",
+    key=fkey("genre"),
 )
 enf_min, enf_max = int(df["nombre_enfants"].min()), int(df["nombre_enfants"].max())
-nb_enfants = st.sidebar.slider("Nombre d'enfants", enf_min, enf_max, (enf_min, enf_max))
+nb_enfants = st.sidebar.slider("Nombre d'enfants", enf_min, enf_max, (enf_min, enf_max), key=fkey("enfants"))
 
 theme.sidebar_section("Localisation & origine")
-provinces = st.sidebar.multiselect("Province", options=sorted(df["province"].unique()))
-pays = st.sidebar.multiselect("Pays d'origine", options=sorted(df["pays_origine"].unique()))
-statuts = st.sidebar.multiselect("Statut migratoire", options=sorted(df["statut_migratoire"].unique()))
+provinces = st.sidebar.multiselect("Province", options=sorted(df["province"].unique()), key=fkey("province"))
+pays = st.sidebar.multiselect("Pays d'origine", options=sorted(df["pays_origine"].unique()), key=fkey("pays"))
+statuts = st.sidebar.multiselect("Statut migratoire", options=sorted(df["statut_migratoire"].unique()), key=fkey("statut"))
 
 theme.sidebar_section("Besoin & suivi")
-besoins = st.sidebar.multiselect("Type de besoin", options=sorted(df["besoin"].unique()))
-pec = st.sidebar.radio("Prise en charge", options=["Toutes", "Oui", "Non"], horizontal=True)
+besoins = st.sidebar.multiselect("Type de besoin", options=sorted(df["besoin"].unique()), key=fkey("besoin"))
+pec = st.sidebar.radio("Prise en charge", options=["Toutes", "Oui", "Non"], horizontal=True, key=fkey("pec"))
 
 st.sidebar.divider()
 st.sidebar.caption(f"Données : {min_date.date()} – {max_date.date()}")
