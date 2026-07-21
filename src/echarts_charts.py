@@ -306,19 +306,32 @@ class EChartsBuilder:
         color_map = {s: pal.CATEGORICAL[i] for i, s in enumerate(labels)}
         color_map[other_label] = pal.MUTED
 
+        # Le % vit dans le nom (donc dans la légende), pas dans un label posé
+        # sur la tranche : pour une grosse tranche (~40%) dont le milieu
+        # angulaire pointe côté droit, un label "inside" tombe pile sur la
+        # légende verticale posée là — aucun repositionnement ne règle ça
+        # sans dépendre de la taille relative des tranches. Supprimer le
+        # label et l'intégrer au nom élimine la collision structurellement.
+        total = int(d["n"].sum())
+        names = {s: f"{s} · {round(n / total * 100)}%" for s, n in zip(d["statut_migratoire"], d["n"])}
+
         opt = base_option("Répartition par statut migratoire", "")
+        # base_option configure un tooltip trigger="axis" (pensé pour les
+        # graphiques cartésiens) — un donut a besoin de trigger="item", sinon
+        # rien ne s'affiche au survol d'une tranche.
+        opt["tooltip"] = {
+            "trigger": "item", "backgroundColor": pal.SURFACE, "borderColor": pal.BASELINE,
+            "textStyle": {"color": pal.INK_PRIMARY, "fontSize": 12},
+            "formatter": "{b}: {c} besoins",
+        }
         opt.update({
             "legend": {"orient": "vertical", "right": 10, "top": "middle",
                        "textStyle": {"color": pal.INK_SECONDARY, "fontSize": 11}},
             "series": [{
                 "type": "pie", "radius": ["48%", "72%"], "center": ["38%", "55%"],
-                "data": [{"name": s, "value": int(n), "itemStyle": {"color": color_map[s]}}
+                "data": [{"name": names[s], "value": int(n), "itemStyle": {"color": color_map[s]}}
                          for s, n in zip(d["statut_migratoire"], d["n"])],
-                # position "inside" explicite : le défaut ECharts est "outside"
-                # avec ligne de renvoi, qui vient percuter la légende posée à
-                # droite pour les tranches situées côté droit de l'anneau.
-                "label": {"formatter": "{d}%", "position": "inside",
-                          "color": pal.INK_PRIMARY, "fontSize": 12},
+                "label": {"show": False},
                 "labelLine": {"show": False},
                 "itemStyle": {"borderColor": pal.SURFACE, "borderWidth": 2},
             }],
