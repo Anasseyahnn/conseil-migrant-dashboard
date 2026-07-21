@@ -8,7 +8,6 @@ from src.charts import ChartBuilder
 from src.data_sources.excel_source import ExcelDataSource
 from src.dataset import ConseilMigrantDataset
 from src.filters import Filters
-from src.tables import DataGrid
 from src.ui import Theme
 
 st.set_page_config(page_title="Conseil Migrant — Tableau de bord", layout="wide", page_icon="🧭")
@@ -113,7 +112,7 @@ with tab4:
         "nombre_enfants", "besoin", "pec_besoin", "date_besoin",
     ]
     table = dff[[c for c in show_cols if c in dff.columns]].sort_values("date_besoin", ascending=False)
-    DataGrid.render(table)
+    st.dataframe(table, use_container_width=True, hide_index=True)
     st.download_button(
         "⬇ Exporter en CSV", table.to_csv(index=False).encode("utf-8"),
         file_name="conseil_migrant_filtre.csv", mime="text/csv",
