@@ -13,71 +13,130 @@ class Theme:
 
     CSS = f"""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
     html, body, [class*="css"] {{
         font-family: {pal.FONT_FAMILY};
     }}
     .block-container {{
-        padding-top: 1.2rem;
+        padding-top: 1.4rem;
         padding-bottom: 3rem;
         max-width: 1200px;
     }}
 
-    /* ---- bande d'accroche en tête de page ---- */
-    .hero-band {{
-        height: 4px;
-        border-radius: 4px;
-        margin-bottom: 1.1rem;
-        background: linear-gradient(90deg,
-            {pal.CATEGORICAL[0]} 0%, {pal.CATEGORICAL[4]} 50%, {pal.CATEGORICAL[6]} 100%);
+    /* ---- atmosphère de fond : wash très discret, jamais dans les cartes ---- */
+    .stApp {{
+        background:
+            radial-gradient(ellipse 900px 480px at 6% -8%, {pal.CATEGORICAL[0]}14, transparent 60%),
+            radial-gradient(ellipse 700px 420px at 100% 8%, {pal.CATEGORICAL[5]}12, transparent 55%),
+            {pal.PAGE};
     }}
-    h1 {{
-        font-size: 1.7rem !important;
-        font-weight: 700 !important;
-        color: {pal.INK_PRIMARY} !important;
+
+    @keyframes rise {{
+        from {{ opacity: 0; transform: translateY(10px); }}
+        to   {{ opacity: 1; transform: translateY(0); }}
+    }}
+
+    /* ---- panneau d'accroche ---- */
+    .hero-panel {{
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 24px;
+        margin-bottom: 1.4rem;
+        border-radius: 16px;
+        border: 1px solid {pal.GRID};
+        background:
+            linear-gradient(135deg, {pal.CATEGORICAL[0]}10 0%, transparent 45%),
+            {pal.SURFACE};
+        box-shadow: 0 1px 2px rgba(11,11,11,0.04), 0 12px 28px -18px rgba(11,11,11,0.18);
+        animation: rise 0.5s ease both;
+    }}
+    .hero-badge {{
+        flex: none;
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        border-radius: 14px;
+        background: linear-gradient(160deg, {pal.CATEGORICAL[0]}, {pal.CATEGORICAL[6]});
+        box-shadow: 0 6px 16px -6px {pal.CATEGORICAL[0]}80;
+    }}
+    .hero-title {{
+        font-family: {pal.DISPLAY_FONT};
+        font-size: 1.95rem;
+        font-weight: 600;
+        color: {pal.INK_PRIMARY};
         letter-spacing: -0.01em;
-        margin-bottom: 0.1rem !important;
+        line-height: 1.15;
+        margin: 0;
     }}
     .hero-sub {{
         color: {pal.INK_MUTED};
         font-size: 0.92rem;
-        margin-bottom: 1.1rem;
+        margin-top: 0.15rem;
     }}
 
     /* ---- cartes KPI (st.metric natif, border=True) ---- */
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"] div[data-testid="stMetric"])
+      > div[data-testid="column"] {{
+        animation: rise 0.45s ease both;
+    }}
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"] div[data-testid="stMetric"])
+      > div[data-testid="column"]:nth-of-type(1) {{ animation-delay: 0.03s; }}
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"] div[data-testid="stMetric"])
+      > div[data-testid="column"]:nth-of-type(2) {{ animation-delay: 0.10s; }}
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"] div[data-testid="stMetric"])
+      > div[data-testid="column"]:nth-of-type(3) {{ animation-delay: 0.17s; }}
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"] div[data-testid="stMetric"])
+      > div[data-testid="column"]:nth-of-type(4) {{ animation-delay: 0.24s; }}
+
     div[data-testid="stMetric"] {{
         background: {pal.SURFACE};
-        border-radius: 12px !important;
-        box-shadow: 0 1px 2px rgba(11,11,11,0.05);
-        padding: 14px 18px 12px 18px;
+        border-radius: 14px !important;
+        box-shadow: 0 1px 2px rgba(11,11,11,0.04), 0 10px 22px -18px rgba(11,11,11,0.22);
+        padding: 15px 18px 13px 18px;
         transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
     }}
     div[data-testid="stMetric"]:hover {{
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(11,11,11,0.09);
+        transform: translateY(-3px);
+        box-shadow: 0 1px 2px rgba(11,11,11,0.04), 0 16px 30px -14px rgba(11,11,11,0.16);
         border-color: {pal.CATEGORICAL[0]} !important;
     }}
     div[data-testid="stMetricLabel"] {{
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.03em;
+        letter-spacing: 0.04em;
     }}
     div[data-testid="stMetricValue"] {{
+        font-family: {pal.MONO_FONT};
         font-variant-numeric: proportional-nums;
+        letter-spacing: -0.01em;
     }}
 
     /* ---- cartes graphiques ---- */
     div[data-testid="stPlotlyChart"] {{
         background: {pal.SURFACE};
         border: 1px solid {pal.GRID};
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 8px 6px 2px 6px;
-        box-shadow: 0 1px 2px rgba(11,11,11,0.05);
+        box-shadow: 0 1px 2px rgba(11,11,11,0.04), 0 10px 22px -18px rgba(11,11,11,0.2);
         transition: box-shadow 0.18s ease, border-color 0.18s ease;
     }}
     div[data-testid="stPlotlyChart"]:hover {{
-        box-shadow: 0 10px 24px rgba(11,11,11,0.10);
+        box-shadow: 0 1px 2px rgba(11,11,11,0.04), 0 18px 32px -14px rgba(11,11,11,0.14);
         border-color: {pal.BASELINE};
+    }}
+
+    /* ---- expander (bandeau qualité) ---- */
+    div[data-testid="stExpander"] {{
+        border-radius: 12px !important;
+        border-color: {pal.GRID} !important;
+        background: {pal.SURFACE};
+        margin-bottom: 1.2rem;
     }}
 
     /* ---- onglets ---- */
@@ -112,6 +171,29 @@ class Theme:
         font-weight: 600;
         color: {pal.INK_SECONDARY};
     }}
+    .sidebar-brand {{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 2px;
+    }}
+    .sidebar-brand-icon {{
+        flex: none;
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.05rem;
+        border-radius: 10px;
+        background: linear-gradient(160deg, {pal.CATEGORICAL[0]}, {pal.CATEGORICAL[6]});
+    }}
+    .sidebar-brand-name {{
+        font-family: {pal.DISPLAY_FONT};
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: {pal.INK_PRIMARY};
+    }}
 
     /* ---- boutons & inputs ---- */
     .stDownloadButton button {{
@@ -135,7 +217,9 @@ class Theme:
     /* ---- mobile ---- */
     @media (max-width: 640px) {{
         .block-container {{ padding-left: 0.8rem; padding-right: 0.8rem; }}
-        h1 {{ font-size: 1.3rem !important; }}
+        .hero-panel {{ padding: 16px; gap: 12px; }}
+        .hero-badge {{ width: 42px; height: 42px; font-size: 1.2rem; border-radius: 12px; }}
+        .hero-title {{ font-size: 1.35rem; }}
         .hero-sub {{ font-size: 0.82rem; }}
     }}
     </style>
@@ -146,7 +230,23 @@ class Theme:
 
     @staticmethod
     def hero(title: str, subtitle: str = "") -> None:
-        st.markdown('<div class="hero-band"></div>', unsafe_allow_html=True)
-        st.markdown(f"# {title}")
-        if subtitle:
-            st.markdown(f'<div class="hero-sub">{subtitle}</div>', unsafe_allow_html=True)
+        sub_html = f'<div class="hero-sub">{subtitle}</div>' if subtitle else ""
+        st.markdown(
+            f'<div class="hero-panel">'
+            f'<div class="hero-badge">🧭</div>'
+            f'<div><div class="hero-title">{title}</div>{sub_html}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    @staticmethod
+    def sidebar_brand(name: str, caption: str = "") -> None:
+        st.sidebar.markdown(
+            f'<div class="sidebar-brand">'
+            f'<div class="sidebar-brand-icon">🧭</div>'
+            f'<div class="sidebar-brand-name">{name}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        if caption:
+            st.sidebar.caption(caption)

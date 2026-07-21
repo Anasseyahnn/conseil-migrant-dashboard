@@ -33,8 +33,7 @@ def load_dataset(path: str, schema_version: int) -> ConseilMigrantDataset:
 dataset = load_dataset(str(DATA_PATH), DATA_SCHEMA_VERSION)
 df = dataset.df
 
-st.sidebar.markdown("## 🧭 Conseil Migrant")
-st.sidebar.caption("Tableau de bord opérationnel")
+theme.sidebar_brand("Conseil Migrant", "Tableau de bord opérationnel")
 st.sidebar.divider()
 
 min_date, max_date = df["date_besoin"].min(), df["date_besoin"].max()
