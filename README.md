@@ -15,3 +15,6 @@ Les données réelles (`ID`, `Sexe`, `Province`, `Statut_migratoire`, `Besoins`,
 ## Statut
 
 Repo privé — travail en cours.
+
+
+Pour la generation de graphique toujour se referer au lien : https://echarts.apache.org/examples/en/index.html#chart-type-matrix
