@@ -11,6 +11,13 @@ STATUT_COLOR = {"Satisfait": pal.STATUS["good"], "Non satisfait": pal.STATUS["cr
 PEC_COLOR = {"Oui": pal.STATUS["good"], "Non": pal.STATUS["critical"]}
 
 
+def _inside_label_colors(taux_values) -> list[str]:
+    """Couleur de texte par barre selon la teinte du remplissage à ce taux :
+    le milieu de l'échelle divergente est un gris pâle (encre foncée lisible),
+    les extrêmes sont un rouge/bleu saturé (texte blanc nécessaire)."""
+    return [pal.INK_PRIMARY if 35 <= t <= 65 else "#ffffff" for t in taux_values]
+
+
 class ChartBuilder:
     """Un thème visuel cohérent (skill dataviz) appliqué à tous les
     graphiques : couleur assignée par rôle (catégoriel / statut / diverging),
@@ -124,8 +131,8 @@ class ChartBuilder:
             text="taux", custom_data=["statut_migratoire", "taux"],
         )
         fig.update_traces(
-            texttemplate="%{text:.0f}%", textposition="outside",
-            textfont=dict(color=pal.INK_SECONDARY, size=11),
+            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
+            textfont=dict(color=_inside_label_colors(d["taux"]), size=11, family=pal.FONT_FAMILY),
             hovertemplate="<b>%{customdata[0]}</b><br>%{x} demandeurs — taux %{customdata[1]}%<extra></extra>",
         )
         fig = self._round_bars(fig, bargap=0.3)
@@ -198,8 +205,8 @@ class ChartBuilder:
             text="taux", custom_data=["province", "satisfaits", "total"],
         )
         fig.update_traces(
-            texttemplate="%{text:.0f}%", textposition="outside",
-            textfont=dict(color=pal.INK_SECONDARY, size=11),
+            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
+            textfont=dict(color=_inside_label_colors(d["taux"]), size=11, family=pal.FONT_FAMILY),
             hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]} / %{customdata[2]}<extra></extra>",
         )
         fig.add_vline(x=50, line_dash="dot", line_width=1, line_color=pal.BASELINE)
