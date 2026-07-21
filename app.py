@@ -8,8 +8,12 @@ from src.charts import ChartBuilder
 from src.data_sources.excel_source import ExcelDataSource
 from src.dataset import ConseilMigrantDataset
 from src.filters import Filters
+from src.ui import Theme
 
 st.set_page_config(page_title="Conseil Migrant — Tableau de bord", layout="wide", page_icon="🧭")
+
+theme = Theme()
+theme.inject()
 
 DATA_PATH = Path(__file__).parent / "data" / "sample" / "basemigrant_sample.xlsx"
 
@@ -63,33 +67,37 @@ dff = dataset.filtered(filters)
 kpi = dataset.kpi(dff)
 charts = ChartBuilder()
 
-st.title("Conseil Migrant — Tableau de bord opérationnel")
+theme.hero("Conseil Migrant — Tableau de bord opérationnel",
+           "Suivi des besoins exprimés, taux de satisfaction et couverture par profil, province et statut migratoire.")
 
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Besoins reçus", f"{kpi['total']:,}".replace(",", " "))
-c2.metric("Besoins satisfaits", f"{kpi['satisfaits']:,}".replace(",", " "))
-c3.metric("Taux de satisfaction", f"{kpi['taux']}%")
-c4.metric("Non satisfaits", f"{kpi['non_satisfaits']:,}".replace(",", " "))
+theme.kpi_grid([
+    ("Besoins reçus", f"{kpi['total']:,}".replace(",", " "), "kpi-accent", "📥"),
+    ("Besoins satisfaits", f"{kpi['satisfaits']:,}".replace(",", " "), "kpi-good", "✅"),
+    ("Taux de satisfaction", f"{kpi['taux']}%", "kpi-good" if kpi["taux"] >= 60 else "kpi-critical", "📊"),
+    ("Non satisfaits", f"{kpi['non_satisfaits']:,}".replace(",", " "), "kpi-critical", "⚠️"),
+])
 
 tab1, tab2, tab3, tab4 = st.tabs(["Vue d'ensemble", "Genre & Statut", "Géographie", "Données"])
 
 with tab1:
     col1, col2 = st.columns([3, 2])
-    col1.plotly_chart(charts.evolution_annuelle(dff), use_container_width=True)
-    col2.plotly_chart(charts.repartition_besoins(dff), use_container_width=True)
+    col1.plotly_chart(charts.evolution_annuelle(dff), use_container_width=True, config={"displayModeBar": False})
+    col2.plotly_chart(charts.repartition_besoins(dff), use_container_width=True, config={"displayModeBar": False})
 
 with tab2:
     col1, col2 = st.columns([2, 3])
-    col1.plotly_chart(charts.par_genre(dff), use_container_width=True)
-    col2.plotly_chart(charts.statut_migratoire(dff), use_container_width=True)
-    st.plotly_chart(charts.taux_genre_besoin(dff), use_container_width=True)
-    st.plotly_chart(charts.par_pays_origine(dff), use_container_width=True)
+    col1.plotly_chart(charts.par_genre(dff), use_container_width=True, config={"displayModeBar": False})
+    col2.plotly_chart(charts.statut_migratoire(dff), use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(charts.taux_genre_besoin(dff), use_container_width=True, config={"displayModeBar": False})
+    col3, col4 = st.columns([3, 2])
+    col3.plotly_chart(charts.par_pays_origine(dff), use_container_width=True, config={"displayModeBar": False})
+    col4.plotly_chart(charts.par_statut_migratoire_donut(dff), use_container_width=True, config={"displayModeBar": False})
 
 with tab3:
     col1, col2 = st.columns([3, 2])
-    col1.plotly_chart(charts.par_province(dff), use_container_width=True)
-    col2.plotly_chart(charts.taux_province(dff), use_container_width=True)
-    st.plotly_chart(charts.evolution_mensuelle(dff), use_container_width=True)
+    col1.plotly_chart(charts.par_province(dff), use_container_width=True, config={"displayModeBar": False})
+    col2.plotly_chart(charts.taux_province(dff), use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(charts.evolution_mensuelle(dff), use_container_width=True, config={"displayModeBar": False})
 
 with tab4:
     st.subheader("Cas non traités — suivi individuel")
