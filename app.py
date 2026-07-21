@@ -94,7 +94,7 @@ with tab2:
     col4.plotly_chart(charts.par_statut_migratoire_donut(dff), use_container_width=True, config={"displayModeBar": False})
 
 with tab3:
-    col1, col2 = st.columns([3, 2])
+    col1, col2 = st.columns([1, 1])
     col1.plotly_chart(charts.par_province(dff), use_container_width=True, config={"displayModeBar": False})
     col2.plotly_chart(charts.taux_province(dff), use_container_width=True, config={"displayModeBar": False})
     st.plotly_chart(charts.evolution_mensuelle(dff), use_container_width=True, config={"displayModeBar": False})
