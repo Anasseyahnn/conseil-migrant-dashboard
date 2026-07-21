@@ -8,6 +8,7 @@ from src.charts import ChartBuilder
 from src.data_sources.excel_source import ExcelDataSource
 from src.dataset import ConseilMigrantDataset
 from src.filters import Filters
+from src.tables import DataGrid
 from src.ui import Theme
 
 st.set_page_config(page_title="Conseil Migrant — Tableau de bord", layout="wide", page_icon="🧭")
@@ -102,16 +103,17 @@ with tab3:
 with tab4:
     st.subheader("Cas non traités — suivi individuel")
     st.caption(
-        "Filtrez sur « Prise en charge = Non » pour lister les ID à retrouver dans le "
-        "fichier d'identité local de l'équipe (Nom, Date de naissance) — ce tableau de "
-        "bord ne contient jamais d'information nominative."
+        "Filtrez sur « Prise en charge = Non » (colonne, ou filtre en tête de "
+        "colonne) pour lister les ID à retrouver dans le fichier d'identité local "
+        "de l'équipe (Nom, Date de naissance) — ce tableau de bord ne contient "
+        "jamais d'information nominative."
     )
     show_cols = [
         "id", "genre", "province", "pays_origine", "statut_migratoire",
         "nombre_enfants", "besoin", "pec_besoin", "date_besoin",
     ]
     table = dff[[c for c in show_cols if c in dff.columns]].sort_values("date_besoin", ascending=False)
-    st.dataframe(table, use_container_width=True, hide_index=True)
+    DataGrid.render(table)
     st.download_button(
         "⬇ Exporter en CSV", table.to_csv(index=False).encode("utf-8"),
         file_name="conseil_migrant_filtre.csv", mime="text/csv",
