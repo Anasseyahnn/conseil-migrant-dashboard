@@ -314,7 +314,12 @@ class EChartsBuilder:
                 "type": "pie", "radius": ["48%", "72%"], "center": ["38%", "55%"],
                 "data": [{"name": s, "value": int(n), "itemStyle": {"color": color_map[s]}}
                          for s, n in zip(d["statut_migratoire"], d["n"])],
-                "label": {"formatter": "{d}%", "color": pal.INK_PRIMARY, "fontSize": 12},
+                # position "inside" explicite : le défaut ECharts est "outside"
+                # avec ligne de renvoi, qui vient percuter la légende posée à
+                # droite pour les tranches situées côté droit de l'anneau.
+                "label": {"formatter": "{d}%", "position": "inside",
+                          "color": pal.INK_PRIMARY, "fontSize": 12},
+                "labelLine": {"show": False},
                 "itemStyle": {"borderColor": pal.SURFACE, "borderWidth": 2},
             }],
         })
