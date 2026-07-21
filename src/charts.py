@@ -144,10 +144,16 @@ class ChartBuilder:
         return self._base_layout(fig, "Besoins par genre", "part satisfaite / non satisfaite")
 
     def statut_migratoire(self, df: pd.DataFrame) -> go.Figure:
-        total = len(df)
-        d = df.groupby("statut_migratoire").agg(n=("id", "count"), taux=("satisfait", "mean")).reset_index()
-        d["taux"] = (d["taux"] * 100).round(1)
-        d["part"] = (d["n"] / total * 100).round(1)
+        # "Profil des demandeurs" parle de PERSONNES, pas de besoins — une
+        # personne peut exprimer plusieurs besoins (plusieurs lignes, même
+        # id). Dédupliquer par id ici, sinon un statut avec des demandeurs
+        # qui reviennent souvent apparaîtrait gonflé sans raison.
+        total_demandeurs = df["id"].nunique()
+        n_demandeurs = df.groupby("statut_migratoire")["id"].nunique()
+        taux = df.groupby("statut_migratoire")["satisfait"].mean()
+        d = pd.DataFrame({"statut_migratoire": n_demandeurs.index, "n": n_demandeurs.values})
+        d["taux"] = (d["statut_migratoire"].map(taux) * 100).round(1)
+        d["part"] = (d["n"] / total_demandeurs * 100).round(1)
         d = d.sort_values("part")
         fig = px.bar(
             d, x="part", y="statut_migratoire", color="taux", orientation="h",
@@ -156,14 +162,15 @@ class ChartBuilder:
             text="taux", custom_data=["statut_migratoire", "taux", "part"],
         )
         fig.update_traces(
-            texttemplate="%{text:.0f}%", textposition="outside",
-            textfont=dict(color=pal.INK_SECONDARY, size=11, family=pal.FONT_FAMILY),
-            hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[2]}% des demandeurs — taux %{customdata[1]}%<extra></extra>",
+            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
+            textfont=dict(color=_inside_label_colors(d["taux"]), size=11, family=pal.FONT_FAMILY),
+            hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[2]}% des demandeurs (personnes uniques) — taux de satisfaction de leurs besoins %{customdata[1]}%<extra></extra>",
         )
-        # Échelle fixée à 0-100% (comme tous les autres graphiques en %) pour
-        # une comparaison visuelle honnête entre graphiques — les barres de
-        # part du total sont donc courtes, d'où l'étiquette à l'extérieur.
-        fig.update_xaxes(range=[0, 100], ticksuffix="%")
+        # Auto-scale volontaire (pas 0-100% comme les autres graphiques) :
+        # une répartition entre 7 catégories ne peut mathématiquement pas
+        # s'approcher de 100% — sur une échelle fixe, les barres se tassent
+        # toutes sous les 20% et deviennent illisibles à comparer.
+        fig.update_xaxes(ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.3)
         fig.update_coloraxes(colorbar=dict(title="Taux %", tickfont=dict(color=pal.INK_MUTED)))
         return self._base_layout(fig, "Profil des demandeurs par statut migratoire",
@@ -200,8 +207,9 @@ class ChartBuilder:
     def par_pays_origine(self, df: pd.DataFrame, top_n: int = 10) -> go.Figure:
         # Seul graphique en valeur absolue : les parts (%) sur un top 10 avec
         # des effectifs proches (6-8% chacun) sont trop peu différenciantes.
+        # "Bénéficiaires" = personnes, pas besoins — dédupliquer par id.
         d = (
-            df.groupby("pays_origine").size().reset_index(name="n")
+            df.groupby("pays_origine")["id"].nunique().reset_index(name="n")
             .sort_values("n", ascending=False).head(top_n).sort_values("n")
         )
         fig = px.bar(d, x="n", y="pays_origine", orientation="h",
@@ -231,14 +239,14 @@ class ChartBuilder:
             text="taux", custom_data=["province", "taux", "part"],
         )
         fig.update_traces(
-            texttemplate="%{text:.0f}%", textposition="outside",
-            textfont=dict(color=pal.INK_SECONDARY, size=11, family=pal.FONT_FAMILY),
+            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
+            textfont=dict(color=_inside_label_colors(d["taux"]), size=11, family=pal.FONT_FAMILY),
             hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[2]}% des besoins — taux %{customdata[1]}%<extra></extra>",
         )
-        # Échelle fixée à 0-100% (comme tous les graphiques en %) pour une
-        # comparaison visuelle honnête — barres de part du total donc courtes,
-        # étiquette à l'extérieur.
-        fig.update_xaxes(range=[0, 100], ticksuffix="%")
+        # Auto-scale volontaire (pas 0-100%) : une répartition entre 10
+        # provinces ne peut pas s'approcher de 100%, une échelle fixe
+        # tasserait toutes les barres sous les 15% et les rendrait illisibles.
+        fig.update_xaxes(ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.25)
         fig.update_coloraxes(colorbar=dict(title="Taux %", tickfont=dict(color=pal.INK_MUTED)))
         return self._base_layout(fig, "Volume de besoins par province", "longueur = part du total, couleur = taux de satisfaction", show_legend=False)
