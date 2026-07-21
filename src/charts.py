@@ -270,6 +270,11 @@ class ChartBuilder:
         fig.add_vline(x=50, line_dash="dot", line_width=1, line_color=pal.BASELINE)
         fig.update_xaxes(range=[0, 100], ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.25)
+        # Pas de colorbar ici : contrairement à "Volume de besoins par
+        # province" (où la couleur est la SEULE vue du taux), le taux est
+        # déjà l'axe X et déjà étiqueté sur chaque barre — une échelle de
+        # couleur redondante ne ferait que voler la place des barres.
+        fig.update_coloraxes(showscale=False)
         return self._base_layout(fig, "Taux de satisfaction", "par province", show_legend=False)
 
     def evolution_mensuelle(self, df: pd.DataFrame) -> go.Figure:
