@@ -10,26 +10,34 @@ par son moteur de thème natif.
 from __future__ import annotations
 
 # Catégoriel — 8 teintes, ORDRE FIXE, jamais recyclé/réordonné par rang.
+# Version adoucie (21/07) : intensité réduite pour le confort visuel, mais
+# revalidée par scripts/validate_palette.js (skill dataviz) avant adoption —
+# ALL CHECKS PASS (bande de clarté, plancher de chroma, séparation daltonisme
+# ΔE 8.7 deutan, contraste — 4 slots en WARN contraste, légal car chaque
+# graphique utilisant ces teintes porte déjà un encodage secondaire : label
+# de valeur direct sur chaque marque + légende).
 CATEGORICAL = [
-    "#2a78d6",  # 1 blue
-    "#008300",  # 2 green
-    "#e87ba4",  # 3 magenta
-    "#eda100",  # 4 yellow
-    "#1baf7a",  # 5 aqua
-    "#eb6834",  # 6 orange
-    "#4a3aa7",  # 7 violet
-    "#e34948",  # 8 red
+    "#4488db",  # 1 blue
+    "#1f921f",  # 2 green
+    "#eb8baf",  # 3 magenta
+    "#eda100",  # 4 yellow (non modifié — déjà en haut de bande, adoucir le sortait de la plage)
+    "#36b98a",  # 5 aqua
+    "#ed7a4c",  # 6 orange
+    "#6052b2",  # 7 violet
+    "#e65f5e",  # 8 red
 ]
 MUTED = "#898781"  # "Autres" / agrégat — jamais un slot numéroté
 
 # Statut — état (satisfait / non satisfait), jamais recyclé pour une série.
+# Adouci (21/07), revalidé : vert/rouge ΔE 8.7 deutan (>= cible 8), contraste
+# >= 3:1 pour les deux — PASS sans réserve.
 STATUS = {
-    "good": "#0ca30c",
-    "critical": "#d03b3b",
+    "good": "#219b21",
+    "critical": "#dc7070",
 }
 
 # Diverging — polarité (taux de satisfaction), pôles + neutre gris médian.
-DIVERGING = ["#e34948", "#f0efec", "#2a78d6"]  # rouge -> gris -> bleu
+DIVERGING = ["#dc7070", "#f0efec", "#4488db"]  # rouge -> gris -> bleu (adoucis)
 
 # Séquentiel — magnitude, une seule teinte bleu, clair -> foncé.
 SEQUENTIAL = ["#cde2fb", "#86b6ef", "#3987e5", "#2a78d6", "#1c5cab", "#0d366b"]

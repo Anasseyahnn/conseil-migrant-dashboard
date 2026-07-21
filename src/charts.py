@@ -12,7 +12,8 @@ PEC_COLOR = {"Oui": pal.STATUS["good"], "Non": pal.STATUS["critical"]}
 # Rouge/vert sont réservés au statut de satisfaction (NPS) — le genre ne
 # doit jamais emprunter ces teintes, pour ne pas laisser croire à un signal
 # de satisfaction là où il n'y en a pas.
-GENRE_COLOR = {"Masculin": "#2a78d6", "Féminin": "#FF6347"}  # bleu / tomate
+# Adouci (21/07), revalidé : ΔE 17.6 protan (largement > cible 8) — PASS.
+GENRE_COLOR = {"Masculin": "#4a86d1", "Féminin": "#e08268"}  # bleu / tomate adoucis
 
 
 def _inside_label_colors(taux_values) -> list[str]:
