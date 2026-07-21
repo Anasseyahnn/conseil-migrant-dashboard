@@ -59,13 +59,15 @@ class ChartBuilder:
         return fig
 
     @staticmethod
-    def _fold_to_other(df: pd.DataFrame, key: str, metric: str, top_n: int = 6) -> pd.DataFrame:
+    def _fold_to_other(df: pd.DataFrame, key: str, metric: str, top_n: int = 6, other_label: str = "Autres") -> pd.DataFrame:
         """Repli 'Autres' : au-delà de top_n séries, agrège le reste — jamais
-        plus de couleurs catégorielles que de slots sûrs sur un graphique."""
+        plus de couleurs catégorielles que de slots sûrs sur un graphique.
+        other_label est personnalisable pour éviter une collision avec une
+        vraie valeur de la donnée (ex. la catégorie "Autre" de statut_migratoire)."""
         totals = df.groupby(key)[metric].sum().sort_values(ascending=False)
         keep = set(totals.head(top_n).index)
         d = df.copy()
-        d[key] = d[key].where(d[key].isin(keep), "Autres")
+        d[key] = d[key].where(d[key].isin(keep), other_label)
         return d
 
     # ---- Vue d'ensemble --------------------------------------------------
@@ -231,20 +233,32 @@ class ChartBuilder:
     def par_statut_migratoire_donut(self, df: pd.DataFrame) -> go.Figure:
         """Vue complémentaire compacte pour petits écrans : part de chaque
         statut migratoire, repliée à 6 tranches + Autres."""
+        other_label = "Autres statuts"
         d = df.groupby("statut_migratoire").size().reset_index(name="n")
-        d = self._fold_to_other(d, "statut_migratoire", "n", top_n=6)
+        d = self._fold_to_other(d, "statut_migratoire", "n", top_n=6, other_label=other_label)
         d = d.groupby("statut_migratoire", as_index=False)["n"].sum().sort_values("n", ascending=False)
-        labels = [s for s in d["statut_migratoire"] if s != "Autres"]
+        labels = [s for s in d["statut_migratoire"] if s != other_label]
         colors = [pal.CATEGORICAL[i] for i in range(len(labels))]
         color_map = dict(zip(labels, colors))
-        color_map["Autres"] = pal.MUTED
+        color_map[other_label] = pal.MUTED
         fig = go.Figure(
             go.Pie(
                 labels=d["statut_migratoire"], values=d["n"], hole=0.58,
                 marker=dict(colors=[color_map[s] for s in d["statut_migratoire"]],
                              line=dict(color=pal.SURFACE, width=2)),
-                textinfo="percent", textfont=dict(color=pal.INK_PRIMARY, size=11),
+                textinfo="percent", textposition="inside", insidetextorientation="horizontal",
+                textfont=dict(color=pal.INK_PRIMARY, size=12, family=pal.FONT_FAMILY),
                 hovertemplate="<b>%{label}</b><br>%{value} (%{percent})<extra></extra>",
             )
         )
-        return self._base_layout(fig, "Répartition par statut migratoire", "")
+        fig = self._base_layout(fig, "Répartition par statut migratoire", "")
+        # Trop d'entrées pour une légende horizontale en tête (chevauche le titre) :
+        # légende verticale à droite du donut à la place.
+        fig.update_layout(
+            legend=dict(
+                orientation="v", x=1.02, xanchor="left", y=0.5, yanchor="middle",
+                font=dict(size=11, color=pal.INK_SECONDARY), title=None,
+            ),
+            margin=dict(t=56, b=24, l=8, r=140),
+        )
+        return fig
