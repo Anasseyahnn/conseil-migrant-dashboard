@@ -65,17 +65,27 @@ filters = Filters(
 )
 dff = dataset.filtered(filters)
 kpi = dataset.kpi(dff)
+kpi_all = dataset.kpi(df)
 charts = ChartBuilder()
 
 theme.hero("Conseil Migrant — Tableau de bord opérationnel",
            "Suivi des besoins exprimés, taux de satisfaction et couverture par profil, province et statut migratoire.")
 
-theme.kpi_grid([
-    ("Besoins reçus", f"{kpi['total']:,}".replace(",", " "), "kpi-accent", "📥"),
-    ("Besoins satisfaits", f"{kpi['satisfaits']:,}".replace(",", " "), "kpi-good", "✅"),
-    ("Taux de satisfaction", f"{kpi['taux']}%", "kpi-good" if kpi["taux"] >= 60 else "kpi-critical", "📊"),
-    ("Non satisfaits", f"{kpi['non_satisfaits']:,}".replace(",", " "), "kpi-critical", "⚠️"),
-])
+# Tendance mensuelle du volume filtré, pour la sparkline de "Besoins reçus".
+spark = dff.groupby("periode").size().sort_index()
+
+c1, c2, c3, c4 = st.columns(4)
+c1.metric(
+    "Besoins reçus", f"{kpi['total']:,}".replace(",", " "),
+    chart_data=spark if len(spark) > 1 else None, chart_type="area", border=True,
+)
+c2.metric("Besoins satisfaits", f"{kpi['satisfaits']:,}".replace(",", " "), border=True)
+c3.metric(
+    "Taux de satisfaction", f"{kpi['taux']}%",
+    delta=f"{kpi['taux'] - kpi_all['taux']:+.1f} pt", delta_color="normal",
+    delta_description="vs global", border=True,
+)
+c4.metric("Non satisfaits", f"{kpi['non_satisfaits']:,}".replace(",", " "), border=True)
 
 tab1, tab2, tab3, tab4 = st.tabs(["Vue d'ensemble", "Genre & Statut", "Géographie", "Données"])
 
