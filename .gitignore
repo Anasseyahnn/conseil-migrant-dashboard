@@ -1,0 +1,22 @@
+# Données réelles — JAMAIS versionnées (PII population vulnérable)
+data/raw/
+*basemigrant.xlsx
+!data/sample/basemigrant_sample.xlsx
+identites*.xlsx
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# Python / Streamlit
+__pycache__/
+*.pyc
+.venv/
+venv/
+.streamlit/secrets.toml
+
+# Système
+.DS_Store
+Thumbs.db
