@@ -382,7 +382,14 @@ class EChartsBuilder:
 
     # ---- Synthèse pilotage -------------------------------------------------
 
-    def sous_couverture(self, df: pd.DataFrame, global_taux: float, min_n: int = 15, bottom: int = 8) -> str:
+    def sous_couverture(self, df: pd.DataFrame, global_taux: float, min_n: int = 15,
+                         bottom: int = 8, view: str = "faibles") -> str:
+        """view="faibles" : seulement les segments les plus sous-couverts
+        (vue d'alerte). view="tous" : tous les segments, triés — pour voir
+        où se situe chaque segment par rapport au global, pas seulement
+        les pires (demandé après confusion sur le sous-titre : sans cette
+        bascule, l'utilisateur ne voit jamais qu'il existe des segments
+        au-dessus de la moyenne)."""
         dims = {"Besoin": "besoin", "Statut": "statut_migratoire", "Province": "province", "Genre": "genre"}
         rows = []
         for prefix, col in dims.items():
@@ -394,13 +401,21 @@ class EChartsBuilder:
                 rows.append({"segment": f"{prefix} · {r[col]}", "taux": round(r["taux"] * 100, 1), "n": int(r["n"])})
         if not rows:
             return self._empty("Où la prise en charge décroche", f"aucun segment d'au moins {min_n} personnes")
-        d = pd.DataFrame(rows).sort_values("taux").head(bottom).sort_values("taux", ascending=False)
 
-        opt = base_option(
-            "Où la prise en charge décroche",
-            f"les {bottom} segments les PLUS FAIBLES uniquement (≥ {min_n} personnes) — "
-            "des segments au-dessus du global existent, non montrés ici",
-        )
+        d_all = pd.DataFrame(rows).sort_values("taux", ascending=False)
+        if view == "tous":
+            d = d_all
+            title = "Tous les segments vs le global"
+            subtitle = f"{len(d)} segments (≥ {min_n} personnes), triés par taux de prise en charge"
+            height = max(420, 34 * len(d) + 120)
+        else:
+            d = d_all.sort_values("taux").head(bottom).sort_values("taux", ascending=False)
+            title = "Où la prise en charge décroche"
+            subtitle = (f"les {bottom} segments les PLUS FAIBLES uniquement (≥ {min_n} personnes) — "
+                        "bascule «Tous les segments» pour voir l'ensemble")
+            height = 420
+
+        opt = base_option(title, subtitle)
         opt.update({
             "grid": {"left": 190, "right": 40, "top": 40, "bottom": 30},
             "xAxis": {"type": "value", "min": 0, "max": 100, "interval": 20,
@@ -424,4 +439,4 @@ class EChartsBuilder:
                 },
             }],
         })
-        return render(opt, height=420, dom_id="sous_couverture")
+        return render(opt, height=height, dom_id="sous_couverture")

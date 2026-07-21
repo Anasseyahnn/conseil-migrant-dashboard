@@ -138,8 +138,16 @@ tab1, tab2, tab3, tab4 = st.tabs(["Vue d'ensemble", "Profils", "Géographie", "D
 
 with tab1:
     # La synthèse pilotage en tête : la première chose à voir est où la prise
-    # en charge décroche, pas la répartition brute.
-    st.iframe(charts.sous_couverture(dff, kpi["taux"]), height=440)
+    # en charge décroche, pas la répartition brute. Bascule pour voir tous
+    # les segments (pas seulement les pires) — sans ça, l'utilisateur ne
+    # voit jamais qu'il existe des segments au-dessus du global.
+    couverture_view = st.segmented_control(
+        "Vue", options=["Segments les plus faibles", "Tous les segments"],
+        default="Segments les plus faibles", key=fkey("couverture_view"), label_visibility="collapsed",
+    )
+    view_arg = "tous" if couverture_view == "Tous les segments" else "faibles"
+    st.iframe(charts.sous_couverture(dff, kpi["taux"], view=view_arg),
+              height=440 if view_arg == "faibles" else "content")
     col1, col2 = st.columns([3, 2])
     with col1:
         st.iframe(charts.evolution_annuelle(dff), height=440)
