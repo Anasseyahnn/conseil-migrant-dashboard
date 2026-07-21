@@ -85,76 +85,85 @@ class ChartBuilder:
 
     def evolution_annuelle(self, df: pd.DataFrame) -> go.Figure:
         d = df.groupby(["annee_besoin", "pec_besoin"]).size().reset_index(name="n")
+        d["pct"] = d.groupby("annee_besoin")["n"].transform(lambda s: (s / s.sum() * 100).round(1))
         fig = px.bar(
-            d, x="annee_besoin", y="n", color="pec_besoin", barmode="group",
+            d, x="annee_besoin", y="pct", color="pec_besoin", barmode="relative",
             color_discrete_map=PEC_COLOR,
-            labels={"annee_besoin": "Année", "n": "Nombre de besoins", "pec_besoin": "Statut"},
-            text="n", custom_data=["pec_besoin"],
+            labels={"annee_besoin": "Année", "pct": "Part des besoins (%)", "pec_besoin": "Statut"},
+            text="pct", custom_data=["pec_besoin", "n"],
         )
         fig.update_traces(
-            textposition="inside", insidetextanchor="middle",
+            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
             textfont=dict(color="#ffffff", size=11, family=pal.FONT_FAMILY),
-            hovertemplate="<b>%{customdata[0]}</b><br>%{y} besoins — %{x}<extra></extra>",
+            hovertemplate="<b>%{customdata[0]}</b><br>%{y}% des besoins de %{x} (n=%{customdata[1]})<extra></extra>",
         )
+        fig.update_yaxes(range=[0, 100], ticksuffix="%")
         fig = self._round_bars(fig)
-        return self._base_layout(fig, "Besoins reçus vs satisfaits", "par année")
+        return self._base_layout(fig, "Besoins reçus vs satisfaits", "part par année")
 
     def repartition_besoins(self, df: pd.DataFrame) -> go.Figure:
         d = df.groupby(["besoin", "satisfait"]).size().reset_index(name="n")
         d["statut"] = d["satisfait"].map(STATUT_LABEL)
-        d = d.sort_values("n")
+        order = d.groupby("besoin")["n"].sum().sort_values().index.tolist()
+        d["pct"] = d.groupby("besoin")["n"].transform(lambda s: (s / s.sum() * 100).round(1))
         fig = px.bar(
-            d, x="n", y="besoin", color="statut", orientation="h",
-            color_discrete_map=STATUT_COLOR,
-            labels={"n": "Nombre", "besoin": ""},
-            text="n", custom_data=["besoin", "statut"],
+            d, x="pct", y="besoin", color="statut", orientation="h",
+            color_discrete_map=STATUT_COLOR, category_orders={"besoin": order},
+            labels={"pct": "Part (%)", "besoin": ""},
+            text="pct", custom_data=["besoin", "statut", "n"],
         )
         fig.update_traces(
-            textposition="inside", insidetextanchor="middle",
+            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
             textfont=dict(color="#ffffff", size=11, family=pal.FONT_FAMILY),
-            hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]} : %{x}<extra></extra>",
+            hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]} : %{x}% (n=%{customdata[2]})<extra></extra>",
         )
+        fig.update_xaxes(range=[0, 100], ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.3)
-        return self._base_layout(fig, "Types de besoins exprimés", "volume et statut")
+        return self._base_layout(fig, "Types de besoins exprimés", "part satisfaite / non satisfaite")
 
     # ---- Genre & statut ----------------------------------------------------
 
     def par_genre(self, df: pd.DataFrame) -> go.Figure:
         d = df.groupby(["genre", "satisfait"]).size().reset_index(name="n")
         d["statut"] = d["satisfait"].map(STATUT_LABEL)
+        d["pct"] = d.groupby("genre")["n"].transform(lambda s: (s / s.sum() * 100).round(1))
         fig = px.bar(
-            d, x="genre", y="n", color="statut", barmode="group",
+            d, x="genre", y="pct", color="statut", barmode="relative",
             color_discrete_map=STATUT_COLOR,
-            labels={"genre": "", "n": "Nombre"},
-            text="n", custom_data=["genre", "statut"],
+            labels={"genre": "", "pct": "Part (%)"},
+            text="pct", custom_data=["genre", "statut", "n"],
         )
         fig.update_traces(
-            textposition="inside", insidetextanchor="middle",
+            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
             textfont=dict(color="#ffffff", size=11, family=pal.FONT_FAMILY),
-            hovertemplate="<b>%{customdata[0]}</b> — %{customdata[1]}<br>%{y} besoins<extra></extra>",
+            hovertemplate="<b>%{customdata[0]}</b> — %{customdata[1]}<br>%{y}% (n=%{customdata[2]})<extra></extra>",
         )
+        fig.update_yaxes(range=[0, 100], ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.45)
-        return self._base_layout(fig, "Besoins par genre", "satisfaits vs non satisfaits")
+        return self._base_layout(fig, "Besoins par genre", "part satisfaite / non satisfaite")
 
     def statut_migratoire(self, df: pd.DataFrame) -> go.Figure:
-        d = df.groupby("statut_migratoire").agg(total=("id", "count"), taux=("satisfait", "mean")).reset_index()
+        total = len(df)
+        d = df.groupby("statut_migratoire").agg(n=("id", "count"), taux=("satisfait", "mean")).reset_index()
         d["taux"] = (d["taux"] * 100).round(1)
-        d = d.sort_values("total")
+        d["part"] = (d["n"] / total * 100).round(1)
+        d = d.sort_values("part")
         fig = px.bar(
-            d, x="total", y="statut_migratoire", color="taux", orientation="h",
+            d, x="part", y="statut_migratoire", color="taux", orientation="h",
             color_continuous_scale=pal.DIVERGING, range_color=[0, 100],
-            labels={"total": "Nombre de demandeurs", "statut_migratoire": "", "taux": "Taux %"},
-            text="taux", custom_data=["statut_migratoire", "taux"],
+            labels={"part": "Part des demandeurs (%)", "statut_migratoire": "", "taux": "Taux %"},
+            text="taux", custom_data=["statut_migratoire", "taux", "part"],
         )
         fig.update_traces(
             texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
             textfont=dict(color=_inside_label_colors(d["taux"]), size=11, family=pal.FONT_FAMILY),
-            hovertemplate="<b>%{customdata[0]}</b><br>%{x} demandeurs — taux %{customdata[1]}%<extra></extra>",
+            hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[2]}% des demandeurs — taux %{customdata[1]}%<extra></extra>",
         )
+        fig.update_xaxes(ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.3)
         fig.update_coloraxes(colorbar=dict(title="Taux %", tickfont=dict(color=pal.INK_MUTED)))
         return self._base_layout(fig, "Profil des demandeurs par statut migratoire",
-                                  "longueur = volume, couleur = taux de satisfaction", show_legend=False)
+                                  "longueur = part du total, couleur = taux de satisfaction", show_legend=False)
 
     def taux_genre_besoin(self, df: pd.DataFrame) -> go.Figure:
         d = (
@@ -185,42 +194,46 @@ class ChartBuilder:
         return self._base_layout(fig, "Taux de satisfaction croisé", "par type de besoin et par genre")
 
     def par_pays_origine(self, df: pd.DataFrame, top_n: int = 10) -> go.Figure:
-        d = (
-            df.groupby("pays_origine").size().reset_index(name="n")
-            .sort_values("n", ascending=False).head(top_n).sort_values("n")
-        )
-        fig = px.bar(d, x="n", y="pays_origine", orientation="h",
-                      labels={"n": "Nombre de bénéficiaires", "pays_origine": ""},
-                      text="n", custom_data=["pays_origine"])
+        total = len(df)
+        d = df.groupby("pays_origine").size().reset_index(name="n")
+        d["pct"] = (d["n"] / total * 100).round(1)
+        d = d.sort_values("pct", ascending=False).head(top_n).sort_values("pct")
+        fig = px.bar(d, x="pct", y="pays_origine", orientation="h",
+                      labels={"pct": "Part des bénéficiaires (%)", "pays_origine": ""},
+                      text="pct", custom_data=["pays_origine", "n"])
         fig.update_traces(
             marker_color=pal.CATEGORICAL[0],
-            textposition="inside", insidetextanchor="middle",
+            texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
             textfont=dict(color="#ffffff", size=11, family=pal.FONT_FAMILY),
-            hovertemplate="<b>%{customdata[0]}</b><br>%{x} bénéficiaires<extra></extra>",
+            hovertemplate="<b>%{customdata[0]}</b><br>%{x}% des bénéficiaires (n=%{customdata[1]})<extra></extra>",
         )
+        fig.update_xaxes(ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.3)
         return self._base_layout(fig, f"Top {top_n} pays d'origine", "", show_legend=False)
 
     # ---- Géographie ---------------------------------------------------------
 
     def par_province(self, df: pd.DataFrame) -> go.Figure:
-        d = df.groupby("province").agg(total=("id", "count"), taux=("satisfait", "mean")).reset_index()
+        total = len(df)
+        d = df.groupby("province").agg(n=("id", "count"), taux=("satisfait", "mean")).reset_index()
         d["taux"] = (d["taux"] * 100).round(1)
-        d = d.sort_values("total")
+        d["part"] = (d["n"] / total * 100).round(1)
+        d = d.sort_values("part")
         fig = px.bar(
-            d, x="total", y="province", color="taux", orientation="h",
+            d, x="part", y="province", color="taux", orientation="h",
             color_continuous_scale=pal.DIVERGING, range_color=[0, 100],
-            labels={"total": "Nombre de besoins", "province": "", "taux": "Taux %"},
-            text="taux", custom_data=["province", "taux"],
+            labels={"part": "Part des besoins (%)", "province": "", "taux": "Taux %"},
+            text="taux", custom_data=["province", "taux", "part"],
         )
         fig.update_traces(
             texttemplate="%{text:.0f}%", textposition="inside", insidetextanchor="middle",
             textfont=dict(color=_inside_label_colors(d["taux"]), size=11, family=pal.FONT_FAMILY),
-            hovertemplate="<b>%{customdata[0]}</b><br>%{x} besoins — taux %{customdata[1]}%<extra></extra>",
+            hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[2]}% des besoins — taux %{customdata[1]}%<extra></extra>",
         )
+        fig.update_xaxes(ticksuffix="%")
         fig = self._round_bars(fig, bargap=0.25)
         fig.update_coloraxes(colorbar=dict(title="Taux %", tickfont=dict(color=pal.INK_MUTED)))
-        return self._base_layout(fig, "Volume de besoins par province", "couleur = taux de satisfaction", show_legend=False)
+        return self._base_layout(fig, "Volume de besoins par province", "longueur = part du total, couleur = taux de satisfaction", show_legend=False)
 
     def taux_province(self, df: pd.DataFrame) -> go.Figure:
         d = df.groupby("province").agg(total=("id", "count"), satisfaits=("satisfait", "sum")).reset_index()
@@ -246,32 +259,34 @@ class ChartBuilder:
         d = df.groupby(["periode", "province"]).size().reset_index(name="n")
         d = self._fold_to_other(d, "province", "n", top_n=6)
         d = d.groupby(["periode", "province"], as_index=False)["n"].sum().sort_values("periode")
+        d["pct"] = d.groupby("periode")["n"].transform(lambda s: (s / s.sum() * 100).round(1))
 
         provinces = [p for p in d["province"].unique() if p != "Autres"]
         color_map = {p: pal.CATEGORICAL[i] for i, p in enumerate(provinces)}
         color_map["Autres"] = pal.MUTED
 
         fig = px.line(
-            d, x="periode", y="n", color="province", markers=True,
+            d, x="periode", y="pct", color="province", markers=True,
             color_discrete_map=color_map,
-            labels={"periode": "", "n": "Besoins exprimés", "province": ""},
-            custom_data=["province"],
+            labels={"periode": "", "pct": "Part des besoins du mois (%)", "province": ""},
+            custom_data=["province", "n"],
         )
         fig.update_traces(
             line=dict(width=2),
             marker=dict(size=8, line=dict(width=2, color=pal.SURFACE)),
-            hovertemplate="<b>%{customdata[0]}</b><br>%{x} : %{y} besoins<extra></extra>",
+            hovertemplate="<b>%{customdata[0]}</b><br>%{x} : %{y}% (n=%{customdata[1]})<extra></extra>",
         )
+        fig.update_yaxes(ticksuffix="%")
         # Une seule étiquette par ligne — la dernière valeur — jamais un
         # nombre sur chaque point (illisible avec autant de mois × séries).
         for trace in fig.data:
             values = list(trace.y)
-            labels = [""] * (len(values) - 1) + [str(values[-1])] if values else []
+            labels = [""] * (len(values) - 1) + [f"{values[-1]:.0f}%"] if values else []
             trace.update(mode="lines+markers+text", text=labels,
                           textposition="top center",
                           textfont=dict(color=trace.line.color, size=11, family=pal.FONT_FAMILY))
         return self._base_layout(fig, "Évolution mensuelle des besoins",
-                                  "par province — top 6, reste replié en «Autres»")
+                                  "part par province, par mois — top 6, reste replié en «Autres»")
 
     def par_statut_migratoire_donut(self, df: pd.DataFrame) -> go.Figure:
         """Vue complémentaire compacte pour petits écrans : part de chaque
