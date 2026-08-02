@@ -117,18 +117,34 @@ class Theme:
         letter-spacing: -0.01em;
     }}
 
-    /* ---- cartes graphiques ---- */
-    div[data-testid="stPlotlyChart"] {{
+    /* ---- cartes graphiques ----
+    Les graphiques sont rendus via st.iframe (data-testid="stIFrame") depuis la
+    migration ECharts — l'ancien sélecteur stPlotlyChart ne correspondait plus
+    à rien dans le DOM et ces cartes n'avaient plus aucun habillage (repéré au
+    polish du 02/08/2026). On stylise le conteneur d'élément qui enveloppe
+    l'iframe, pour garder la même carte (fond, bordure, ombre, hover) que le
+    reste de l'app plutôt que l'iframe brute. */
+    div[data-testid="stElementContainer"]:has(> iframe[data-testid="stIFrame"]) {{
         background: {pal.SURFACE};
         border: 1px solid {pal.GRID};
         border-radius: 14px;
-        padding: 8px 6px 2px 6px;
+        padding: 10px 8px 4px 8px;
         box-shadow: 0 1px 2px rgba(11,11,11,0.04), 0 10px 22px -18px rgba(11,11,11,0.2);
-        transition: box-shadow 0.18s ease, border-color 0.18s ease;
+        transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+        animation: rise 0.5s ease both;
     }}
-    div[data-testid="stPlotlyChart"]:hover {{
+    div[data-testid="stElementContainer"]:has(> iframe[data-testid="stIFrame"]):hover {{
         box-shadow: 0 1px 2px rgba(11,11,11,0.04), 0 18px 32px -14px rgba(11,11,11,0.14);
         border-color: {pal.BASELINE};
+        transform: translateY(-2px);
+    }}
+    @media (prefers-reduced-motion: reduce) {{
+        div[data-testid="stElementContainer"]:has(> iframe[data-testid="stIFrame"]) {{
+            animation: none;
+        }}
+        div[data-testid="stElementContainer"]:has(> iframe[data-testid="stIFrame"]):hover {{
+            transform: none;
+        }}
     }}
 
     /* ---- expander (bandeau qualité) ---- */
@@ -261,6 +277,20 @@ class Theme:
     .stDownloadButton button:hover {{
         background: {pal.CATEGORICAL[0]} !important;
         color: white !important;
+    }}
+
+    /* ---- accessibilité : coupe toutes les animations d'entrée/hover pour les
+    utilisateurs qui demandent moins de mouvement (hero, cartes KPI, cartes
+    graphiques) — ajouté au polish du 02/08/2026, cf. PRODUCT.md. ---- */
+    @media (prefers-reduced-motion: reduce) {{
+        .hero-panel,
+        div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"] div[data-testid="stMetric"])
+          > div[data-testid="column"] {{
+            animation: none !important;
+        }}
+        div[data-testid="stMetric"]:hover {{
+            transform: none;
+        }}
     }}
 
     /* ---- scrollbar ---- */
