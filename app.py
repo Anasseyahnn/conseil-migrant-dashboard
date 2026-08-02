@@ -4,6 +4,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from src.auth import check_login, logout_button
 from src.echarts_charts import EChartsBuilder
 from src.data_sources.excel_source import ExcelDataSource
 from src.data_sources.secrets_source import SecretsExcelDataSource
@@ -12,6 +13,13 @@ from src.filters import GRANULARITE_COLONNES, Filters
 from src.ui import Theme
 
 st.set_page_config(page_title="Conseil Migrant — Tableau de bord", layout="wide", page_icon="🧭")
+
+# Porte de connexion — l'app Streamlit Cloud est réglée en "public et
+# searchable" (02/08/2026), donc c'est la SEULE protection avant d'afficher
+# des données réelles (PII, population vulnérable). Doit s'exécuter avant
+# tout chargement de données, jamais après.
+if not check_login():
+    st.stop()
 
 theme = Theme()
 theme.inject()
@@ -50,6 +58,7 @@ if _HAS_REAL_DATA:
     st.sidebar.caption("🔒 Données réelles")
 else:
     st.sidebar.caption("🧪 Données de démonstration (échantillon synthétique)")
+logout_button()
 st.sidebar.divider()
 
 # Suffixe de version dans chaque clé de widget : incrémenter force Streamlit
