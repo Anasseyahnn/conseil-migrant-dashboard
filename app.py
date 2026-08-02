@@ -6,6 +6,7 @@ import streamlit as st
 
 from src.echarts_charts import EChartsBuilder
 from src.data_sources.excel_source import ExcelDataSource
+from src.data_sources.secrets_source import SecretsExcelDataSource
 from src.dataset import ConseilMigrantDataset
 from src.filters import GRANULARITE_COLONNES, Filters
 from src.ui import Theme
@@ -24,16 +25,31 @@ DATA_PATH = Path(__file__).parent / "data" / "sample" / "basemigrant_sample.xlsx
 # redéploiement (sinon : AttributeError / KeyError sur les nouveaux champs).
 DATA_SCHEMA_VERSION = 3
 
+# Données réelles (PII, jamais committées) : si le secret [data].basemigrant_b64
+# est configuré côté Streamlit Cloud, on l'utilise en priorité. Sinon, repli
+# explicite sur l'échantillon synthétique — jamais silencieux, affiché à
+# l'utilisateur (cf. theme.sidebar_brand plus bas) pour éviter de refaire la
+# confusion du 02/08/2026 (app tournait sur l'échantillon sans que ce soit visible).
+_HAS_REAL_DATA = bool(st.secrets.get("data", {}).get("basemigrant_b64"))
+
 
 @st.cache_resource(show_spinner="Chargement des données…")
-def load_dataset(path: str, schema_version: int) -> ConseilMigrantDataset:
-    return ConseilMigrantDataset(ExcelDataSource(path)).load()
+def load_dataset(source_key: str, schema_version: int) -> ConseilMigrantDataset:
+    if source_key == "real":
+        source = SecretsExcelDataSource(st.secrets["data"]["basemigrant_b64"])
+    else:
+        source = ExcelDataSource(str(DATA_PATH))
+    return ConseilMigrantDataset(source).load()
 
 
-dataset = load_dataset(str(DATA_PATH), DATA_SCHEMA_VERSION)
+dataset = load_dataset("real" if _HAS_REAL_DATA else "sample", DATA_SCHEMA_VERSION)
 df = dataset.df
 
 theme.sidebar_brand("Conseil Migrant", "Tableau de bord opérationnel")
+if _HAS_REAL_DATA:
+    st.sidebar.caption("🔒 Données réelles")
+else:
+    st.sidebar.caption("🧪 Données de démonstration (échantillon synthétique)")
 st.sidebar.divider()
 
 # Suffixe de version dans chaque clé de widget : incrémenter force Streamlit
