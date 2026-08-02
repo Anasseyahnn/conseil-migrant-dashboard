@@ -12,6 +12,17 @@ Les données réelles (`ID`, `Sexe`, `Province`, `Statut_migratoire`, `Besoins`,
 - Le fichier réel reste local, hors git (voir `.gitignore`).
 - Pour retrouver l'identité d'un bénéficiaire à partir d'un `ID` filtré dans le tableau de bord (ex. cas non traités), l'équipe Conseil Migrant utilise son propre fichier `ID → Nom → Date_de_naissance`, conservé séparément et jamais partagé avec ce repo ou les apps hébergées.
 
+## Accès et comptes
+
+L'app Streamlit Cloud est réglée en **public et searchable** (pas de restriction côté plateforme) : la seule protection est la page de connexion (`src/auth.py`), avec les identifiants dans les secrets Streamlit Cloud (`[auth.users]`, hash SHA-256, jamais dans ce repo).
+
+Aujourd'hui, un seul compte existe et l'ajout de tout nouveau compte se fait manuellement dans les secrets Streamlit Cloud. **Ce n'est pas une solution définitive.** Avant d'ouvrir l'accès à plusieurs personnes de l'équipe, le propriétaire de l'app doit trancher entre :
+- comptes individuels ajoutés manuellement (traçabilité, mais quelqu'un doit gérer chaque ajout) ;
+- un mot de passe d'équipe partagé (zéro friction, aucune traçabilité par personne) ;
+- un vrai self-service (nécessite une base de données externe et une décision d'infra).
+
+Ce choix touche à l'accès à des données réelles de population vulnérable — à trancher par le propriétaire de l'app, pas à la légère.
+
 ## Statut
 
 Repo privé — travail en cours.
